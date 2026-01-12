@@ -1,11 +1,14 @@
-Sujet : plateforme enchères 
+Sujet : tou-tou (garder pour le nom d'appli)
 
 Idées : 
     - web service
     - postgre sql pour la base de données
     - outis pour gestion en temmps réel
     - interface utilisateur intuitive
-    - système de notifications pour les enchères
+    - système de notifications pour les tickets, updates
+    - gestion des codes qr
+    - authentification
+
 
 Qui s'occupe de quoi :
     - William : interface
