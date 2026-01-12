@@ -1,0 +1,14 @@
+Sujet : plateforme enchères 
+
+Idées : 
+    - web service
+    - postgre sql pour la base de données
+    - outis pour gestion en temmps réel
+    - interface utilisateur intuitive
+    - système de notifications pour les enchères
+
+Qui s'occupe de quoi :
+    - William : interface
+    - Lia : backend
+    - Van : base de données, web service
+
