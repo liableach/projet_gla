@@ -20,9 +20,14 @@ Qui s'occupe de quoi :
 Cdc: 
 # 💡 Un système de gestion de la billetterie d'un réseau ferroviaire 
 
-## Contexte, Glossaire (Vocabulaire du domaine c'est quoi wwebservice, controller par ex)
+## 1. Contexte, Glossaire (Vocabulaire du domaine c'est quoi wwebservice, controller par ex)
     - Présentation générale du problème et du besoin 
     - Vocabulaire métier
+
+### 1.1. Contexte général du projet
+### 1.2. Contexte métier
+### 1.3. Vocabulaire spécifique
+
 ## Objectifs
     - Fonctionnel (à qui, à quelles fins)
     - Non-Fonctionnel (Sécurité - par ex doit éviter les fraudes, simplicité d'utilisation )
