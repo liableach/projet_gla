@@ -20,7 +20,7 @@ Qui s'occupe de quoi :
 Cdc: 
 # 💡 Un système de gestion de la billetterie d'un réseau ferroviaire 
 
-## Contexte, Annexe (Glossaire - Vocabulaire du domaine c'est quoi wwebservice, controller par ex)
+## Contexte, Glossaire (Vocabulaire du domaine c'est quoi wwebservice, controller par ex)
     - Présentation générale du problème et du besoin 
     - Vocabulaire métier
 ## Objectifs
