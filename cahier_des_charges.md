@@ -18,7 +18,7 @@ Qui s'occupe de quoi :
 
 
 Cdc: 
-# 💡 A System for Ticketing in a Railway Network
+# 💡 Un système de gestion de la billetterie d'un réseau ferroviaire 
 
 ## Contexte, Annexe (Glossaire - Vocabulaire du domaine c'est quoi wwebservice, controller par ex)
     - Présentation générale du problème et du besoin 
