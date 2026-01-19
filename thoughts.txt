@@ -13,5 +13,5 @@ Idées :
 Qui s'occupe de quoi :
     - William : interface
     - Lia : backend
-    - Van : base de données, web service
+    - Van trang : base de données, web service
 
