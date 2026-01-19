@@ -17,6 +17,21 @@ Qui s'occupe de quoi :
     - Van trang : base de données, web service
 
 
-Cdc: https://docs.google.com/document/d/1sUsQyp-T9t59IucHuD5-7Z3wev-WH65ScvjqzVK8bL0/edit?usp=sharing
-1. context, objectives
-2. 
+Cdc: 
+# 💡 A System for Ticketing in a Railway Network
+
+## Contexte, Annexe (Glossaire - Vocabulaire du domaine c'est quoi wwebservice, controller par ex)
+    - Présentation générale du problème et du besoin 
+    - Vocabulaire métier
+## Objectifs
+    - Fonctionnel (à qui, à quelles fins)
+    - Non-Fonctionnel (Sécurité - par ex doit éviter les fraudes, simplicité d'utilisation )
+## Constraintes (économique, environnemental,...) - voir dans les slides
+## Exigences fonctionnelles
+    - Liste des fonctionnalités
+    - Scénarios d'utilisation 
+    - Comportements & Protocole (Abstract) - Echange entre composants
+## Hypothèses & Limitations 
+    - Simplifications acceptées (par ex: paiements simulés)
+## Critères de validation
+
