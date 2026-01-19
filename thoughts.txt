@@ -15,3 +15,7 @@ Qui s'occupe de quoi :
     - Lia : backend
     - Van trang : base de données, web service
 
+
+Cdc: https://docs.google.com/document/d/1sUsQyp-T9t59IucHuD5-7Z3wev-WH65ScvjqzVK8bL0/edit?usp=sharing
+1. context, objectives
+2. 
