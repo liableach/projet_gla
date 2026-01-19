@@ -6,8 +6,9 @@ Idées :
     - outis pour gestion en temmps réel
     - interface utilisateur intuitive
     - système de notifications pour les tickets, updates
-    - gestion des codes qr
+    - gestion des codes qr (penser à la gestion de validation multiple)
     - authentification
+    - trouver un trajet entre deux points A et B (implémenter les maps pour ça?) 
 
 
 Qui s'occupe de quoi :
