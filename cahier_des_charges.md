@@ -26,13 +26,15 @@ Cdc:
 
 ### 1.1. Contexte général du projet
 Le présent projet s'inscrit dans la conception d'un système de billetterie numérique permettant la gestion complète de titres de transport pour un réseau ferroviaire simplifié.
+
 Dans un contexte où la dématérialisation des services publiques et la sécurisation des intéractions client - systèmes deviennent des enjeux majeurs, il est nécessaire de disposer d'un service fiable, cohérent et vérifiable permettant:
+
     - la recherche, l'achat et l'émission de billets électroniques
     - la gestion d'un réseau fixe de services de transport
     - la vérification locale des titres par une unité de contrôle
     - l'identification d'un client via un code optique
     - la réduction des risques de fraude
-    
+
 
 
 ### 1.2. Contexte métier
