@@ -21,8 +21,6 @@ Cdc:
 # 💡 Un système de gestion de la billetterie d'un réseau ferroviaire 
 
 ## 1. Contexte, Glossaire (Vocabulaire du domaine c'est quoi wwebservice, controller par ex)
-    - Présentation générale du problème et du besoin 
-    - Vocabulaire métier
 
 ### 1.1. Contexte général du projet
 Le présent projet s'inscrit dans la conception d'un système de billetterie numérique permettant la gestion complète de titres de transport pour un réseau ferroviaire simplifié.
@@ -300,3 +298,41 @@ Le système sera considéré conforme si les opérations suivantes peuvent être
     - Génération d’un code optique unique et décodable pour chaque billet.
     - Authentification localisée d’un billet à partir de l’unité de contrôle.
     - Gestion explicite des cas d’erreur (billet inexistant, service incorrect, duplication, format invalide).
+
+### 6.2. Validation des critères non fonctionnels
+
+Le système devra satisfaire les exigences suivantes :
+
+    - Fiabilité des processus critiques (émission, authentification, communication entre composants).
+    - Performance raisonnable, notamment pour les réponses d’authentification.
+    - Sécurité des données clients et des liens client–billet.
+    - Intégrité des données, sans mise à jour partielle ou incohérente.
+    - Simplicité d’usage, notamment pour l’unité de contrôle.
+
+### 6.3. Critères d’acceptation par les parties prenantes
+
+Le système est jugé acceptable lorsque :
+
+    - Les clients peuvent acheter un billet et obtenir un code optique utilisable sans assistance.
+    - Les agents de contrôle peuvent vérifier un billet rapidement et sans ambiguïté.
+    - L’administrateur peut gérer la configuration initiale sans intervention technique complexe.
+    - Tous les scénarios d’usage définis sont exécutables de bout en bout.
+
+### 6.4. Validation en conditions de connectivité limitée (usage à bord du train)
+
+Dans un contexte ferroviaire réel, l’unité de contrôle peut être utilisée dans un environnement à connectivité faible, instable ou inexistante. Le système devra donc respecter les critères suivants :
+
+    - Tolérance à l’absence de réseau : En cas de non-disponibilité de Wi-Fi ou de données mobiles, l’unité de contrôle doit afficher un message explicite indiquant que l’authentification en temps réel est impossible, sans provoquer d’erreur interne ni de blocage.
+    - Comportement fail-safe : En absence de connexion, l’application ne doit jamais valider un billet, ni produire de décision ambiguë. Elle doit rester neutre pour éviter toute violation des règles de sécurité.
+    - Non-altération des données locales : L’absence de réseau ne doit entraîner aucune corruption, perte ou duplication de données stockées localement.
+    - Reprise automatique des opérations : Dès que la connectivité est rétablie, l’application doit retrouver un fonctionnement normal sans nécessiter de redémarrage manuel.
+    - Cohérence après synchronisation : Le rétablissement du réseau ne doit pas créer d’état incohérent entre l’unité de contrôle et le serveur central.
+
+### 6.5. Conditions de conformité finale
+
+Le produit final est conforme lorsque :
+
+    - Toutes les exigences du Cahier de Charges sont satisfaites.
+    - Aucun comportement contradictoire ou non spécifié ne subsiste dans les fonctions principales.
+    - Les scénarios fonctionnels sont exécutables sans correction manuelle.
+    - Les éventuels écarts sont documentés, justifiés et validés par le client.
