@@ -91,102 +91,88 @@ Le système devra ****prévoir un mode dégradé en cas d’indisponibilité du 
 
 ### 3.2. Contraintes de sécurité
 
-Les billets devront être protégés contre la falsification :
+Les billets devront être protégés ****contre la falsification**** :
         
 Il faut toujours penser à la fraude. On propose d'introduire une solution classique assez simple, qui consiste à générer un code QR unique pour chaque billet existant. Cette solution nous permettra d'assurer l'unicité des billets, tandis que la vérification côté serveur permet de détécter les tentatives de fraude. 
     
 ***Comment?*** 
 
-Chaque billet sera associé à un compte utilisateur qui l'a acheté. Il sera possible d'en obtenir un uniquement après un paiement succesif. Les tickets sont gardés sur le serveur, donc si le ticket n'y est pas présent ou s'il ne correspond pas au compte depuis duquel il a été scanné, il y a alors une possibilité de fraude. C'est aussi un aspect discutable. On n'a pas envie de forcer chaque utilisateur à télécharger l'application et à passer la vérification (ce qui est éffectivement la meilleure solution possible), mais de pouvoir retrouver le ticket dans la boîte aux mails. Dans ce projet, pour simplifier un peu la vie, nous allons rester avec la prémiere idée, qui consiste à associer les billets au comptes physiques validés.
+****Chaque billet sera associé à un compte utilisateur qui l'a acheté. Il sera possible d'en obtenir un uniquement après un paiement succesif****. Les tickets sont gardés sur le serveur, donc si le ticket n'y est pas présent ou s'il ne correspond pas au compte depuis duquel il a été scanné, il y a alors une possibilité de fraude. C'est aussi un aspect discutable. On n'a pas envie de forcer chaque utilisateur à télécharger l'application et à passer la vérification (ce qui est éffectivement la meilleure solution possible), mais de pouvoir retrouver le ticket dans la boîte aux mails. Dans ce projet, pour simplifier un peu la vie, nous allons rester avec la prémiere idée, qui consiste à associer les billets au comptes physiques validés.
 
-Chaque billet devra être identifié de manière unique :Contrainte d'unicité assez typique qui consiste à faire de sorte que chaque identifiant de tickets soit unique. C'est assez réalisable et n'est pas le piége le plus difficile de ce projet.
+****Chaque billet devra être identifié de manière unique**** :Contrainte d'unicité assez typique qui consiste à faire de sorte que chaque identifiant de tickets soit unique. C'est assez réalisable et n'est pas le piége le plus difficile de ce projet.
 
-Un même billet ne devra pas pouvoir être validé plusieurs fois au niveau global :Comme déjà précisé, il y aura 2 niveaux de validation (locale et globale). La validation globale ne pourra se faire qu'une seule fois. Qu'est-ce-qu'on va faire si le billet sera validé la deuxieme fois? Après la validation, on le marque valide et on garde les informations suivantes : par qui il a été validé et quand. Lors les vérifications suivantes, ces informations seront affichées pour les controlleurs. Il faut également penser au cas où le ticket a été bien validé, mais où l'utilisateur souhaite l'utiliser une deuxième fois pour un autre trajet. Comment on fait? On peut résoudre ce probléme grâce à une validité globale du ticket. Pour chaque trajet on aura une heure approximative d'arrivée. Chaque minute, lorsque le serveur actualise les données, il marquera invalides tous les billets dont l'heure d'arrivée + 10 minutes (temps approximative pour sortir du quai et où pendant lequel une validation peut encore avoir lieu) est déjà dépassée. Ce n'est pas la solutions la plus sécurisé, mais cela permet quand-même de réduire fortement les tentatives de fraude.
+****Un même billet ne devra pas pouvoir être validé plusieurs fois au niveau global**** :Comme déjà précisé, il y aura 2 niveaux de validation (locale et globale). La validation globale ne pourra se faire qu'une seule fois. Qu'est-ce-qu'on va faire si le billet sera validé la deuxieme fois? Après la validation, on le marque valide et on garde les informations suivantes : par qui il a été validé et quand. Lors les vérifications suivantes, ces informations seront affichées pour les controlleurs. Il faut également penser au cas où le ticket a été bien validé, mais où l'utilisateur souhaite l'utiliser une deuxième fois pour un autre trajet. Comment on fait? On peut résoudre ce probléme grâce à une validité globale du ticket. Pour chaque trajet on aura une heure approximative d'arrivée. Chaque minute, lorsque le serveur actualise les données, il marquera invalides tous les billets dont l'heure d'arrivée + 10 minutes (temps approximative pour sortir du quai et où pendant lequel une validation peut encore avoir lieu) est déjà dépassée. Ce n'est pas la solutions la plus sécurisé, mais cela permet quand-même de réduire fortement les tentatives de fraude.
 
-Les données personnelles des utilisateurs ne devront pas apparaître dans les codes QR :Cette contrainte est trés typique et demandée par nombreux standards de sécurité au niveau gouvernement. Aucune information personnelle ne sera stockée dans les codes générés, uniquement l'identifiant de l'utilisateur et l'identifiant du billet.
+****Les données personnelles des utilisateurs ne devront pas apparaître dans les codes QR**** :Cette contrainte est trés typique et demandée par nombreux standards de sécurité au niveau gouvernement. Aucune information personnelle ne sera stockée dans les codes générés, uniquement l'identifiant de l'utilisateur et l'identifiant du billet.
 
-L’authentification sera requise pour toute opération sensible (achat, validation, administration) : Cette contrainte consiste à vérifier les droits nécessaires à gérer le système ou des operations sur un billet.
+****L’authentification sera requise pour toute opération sensible**** (achat, validation, administration) : Cette contrainte consiste à vérifier les droits nécessaires à gérer le système ou des operations sur un billet.
 
 ### 3.3. Contraintes économiques
 
-Le projet devra utiliser exclusivement des technologies open-source : Évidemment, on n'a pas accès aux technologies privées des entreprises. On va se contenter avec des outils en accés libre, par exemple la génération des codes QR de Google.
+Le projet devra utiliser exclusivement des ****technologies open-source**** : Évidemment, on n'a pas accès aux technologies privées des entreprises. On va se contenter avec des outils en accés libre, par exemple la génération des codes QR de Google.
 
-L’infrastructure devra être déployable sur des ressources limitées : Cette contrainte implique que le système puisse fonctionner sur une infrastructure serveur légère, disposant de ressources matérielles limitées (CPU, mémoire, stockage).
+L’infrastructure devra être ****déployable sur des ressources limitées**** : Cette contrainte implique que le système puisse fonctionner sur une infrastructure serveur légère, disposant de ressources matérielles limitées (CPU, mémoire, stockage).
 
-L’architecture proposée repose sur une API REST monolithique et une base de données relationnelle unique (PostgreSQL), afin de limiter la complexité du déploiement et la consommation de ressources. Aucun service externe coûteux ou fortement consommateur de ressources ne sera requis. Cette approche permet un déploiement sur un serveur mutualisé ou une machine de capacité modeste, tout en assurant les fonctionnalités essentielles du système.
+L’architecture proposée repose sur une ****API REST**** monolithique et une base de données relationnelle unique (PostgreSQL), afin de limiter la complexité du déploiement et la consommation de ressources. Aucun service externe coûteux ou fortement consommateur de ressources ne sera requis. Cette approche permet un déploiement sur un serveur mutualisé ou une machine de capacité modeste, tout en assurant les fonctionnalités essentielles du système.
 
-Les coûts liés aux services externes devront être évités ou simulés : Il est évident que, pour un projet étudiant à présenter, aucun paiement réel ne sera éffectué. Tous les paiements seront simulés, ainsi que la validation des comptes (pas de connexion avec FranceConnect). Ça va quand-même rester une possibilité si on va penser à vendre notre produit.
+****Les coûts liés aux services externes devront être évités ou simulés**** : Il est évident que, pour un projet étudiant à présenter, aucun paiement réel ne sera éffectué. Tous les paiements seront simulés, ainsi que la validation des comptes (pas de connexion avec FranceConnect). Ça va quand-même rester une possibilité si on va penser à vendre notre produit.
 
 ### 3.4. Contraintes opérationnelles
 
-Le système devra fonctionner malgré une connexion réseau instable :Cette contrainte est déjà décrite précédemment, avec l'introduction d'une validation locale si le réseau n'est pas accessible. 
+Le système devra fonctionner ****malgré une connexion réseau instable**** :Cette contrainte est déjà décrite précédemment, avec l'introduction d'une validation locale si le réseau n'est pas accessible. 
 
 En cas de perte de connexion, les opérations critiques devront être reportées : Un exemple est la validation locale, qui peut être reportée jusqu'au moment où la connexion est rétablie. Ça peut être implémentée sous forme de requêtes mises en attente, envoyées automatiquement lorsque la connexion sera établie.
 
 La synchronisation avec le serveur devra permettre la résolution de conflits liés aux validations multiples : Cette contrainte a également été décrite précédemment, ainsi que les solutions possibles.
 
+---
+
 ## 4. Exigences fonctionnelles
 
-4.1 Fonctionnalités principales
+### 4.1. Fonctionnalités principales
 
-    1) Recherche de trajet
+#### 4.1.1. Recherche de trajet
 
-        - Le système devra permettre à un utilisateur de rechercher un trajet entre deux points A et B.
+    - Le système devra permettre à un utilisateur de rechercher un trajet entre deux points A et B.
+    - Le calcul du trajet reposera sur un réseau ferroviaire prédéfini.
+    - L’intégration de services cartographiques externes est optionnelle mais trés souhaitable à introduire.
 
-        - Le calcul du trajet reposera sur un réseau ferroviaire prédéfini.
+#### 4.1.2. Achat et émission de billet
 
-        - L’intégration de services cartographiques externes est optionnelle mais trés souhaitable à introduire.
+    - Le système devra permettre l’achat d’un billet pour un trajet sélectionné (s'il y a des places disponibles).
+    - Le processus de paiement sera simulé.
+    - À l’issue de l’achat, un billet électronique unique devra être émis et sauvegardé dans le compte de l'utilisateur.
 
-    2) Achat et émission de billet
+#### 4.1.3. Génération et gestion des codes QR
+    - Chaque billet devra être associé à un code QR unique.
+    - Le code QR devra permettre l’identification du billet par le système.
+    - Le contenu du code QR ne devra pas permettre l’accès direct aux données personnelles.
+    - Le système devra empêcher la validation multiple d’un même billet au niveau du serveur si le billet est déjà validé, ou prévenir le contrôleur que ce billet est déjà validé. Ici on fait une distinction entre être validé et être valide : 
 
-        - Le système devra permettre l’achat d’un billet pour un trajet sélectionné (s'il y a des places disponibles).
-
-        - Le processus de paiement sera simulé.
-
-        - À l’issue de l’achat, un billet électronique unique devra être émis et sauvegardé dans le compte de l'utilisateur.
-
-    3) Génération et gestion des codes QR
-
-        - Chaque billet devra être associé à un code QR unique.
-
-        - Le code QR devra permettre l’identification du billet par le système.
-
-        - Le contenu du code QR ne devra pas permettre l’accès direct aux données personnelles.
-
-        - Le système devra empêcher la validation multiple d’un même billet au niveau du serveur si le billet est déjà validé, ou prévenir le contrôleur que ce billet est déjà validé.
-          
-          Ici on fait une distinction entre être validé et être valide : 
-    
             * un billet valide est un billet qui a une vraie validité au niveau du paiement, de la date, du temps et du trajet.
     
             * un billet validé est un billet VALIDE qui a été validé par un controlleur.
 
-    4) Validation des billets
+#### 4.1.4. Validation des billets
 
-        - La validation définitive d’un billet nécessitera une communication avec le serveur.
+La validation définitive d’un billet nécessitera une communication avec le serveur.
     
-        - En cas d’indisponibilité du réseau, le système devra permettre :
+En cas d’indisponibilité du réseau, le système devra permettre :
 
-            * la lecture du code QR;
+    * la lecture du code QR;
 
-            * une pré-validation locale temporaire.
+    * une pré-validation locale temporaire.
 
-        - Toute validation locale devra être synchronisée ultérieurement avec le serveur.
+Toute validation locale devra être synchronisée ultérieurement avec le serveur.
 
-        - En cas de conflit, la première validation enregistrée par le serveur fera foi.
+En cas de conflit, la première validation enregistrée par le serveur fera foi.
 
 
-    5) Notifications
+#### 4.1.5. Notifications
 
-        - Le système devra notifier l’utilisateur :
+Le système devra notifier l’utilisateur : de l’émission d’un billet; de sa validation et de son annulation ou expiration.
 
-            * de l’émission d’un billet;
-
-            * de sa validation;
-
-            * de son annulation ou expiration.
-
-4.2 Scénarios d’utilisation (extraits corrigés)
+### 4.2. Scénarios d’utilisation 
     
     Scénario "Contrôle d’un billet" :
 
@@ -200,7 +186,7 @@ La synchronisation avec le serveur devra permettre la résolution de conflits li
 
         4) Une synchronisation ultérieure permet la validation définitive ou la détection d’un conflit.
 
-4.3 Comportements & protocole (abstrait)
+### 4.3. Comportements & protocole (abstrait)
 
     - Les échanges entre clients et serveur s’effectuent via HTTP.
 
