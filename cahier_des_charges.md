@@ -35,10 +35,37 @@ Dans un contexte où la dématérialisation des services publiques et la sécuri
     - l'identification d'un client via un code optique
     - la réduction des risques de fraude
 
+Le système vise principalement un environnement pédagogique et expérimental, mais doit refléter les contraintes essentielles d’un système réel : cohérence fonctionnelle, intégrité des données, traçabilité des actions et robustesse face aux usages courants.
 
+Les utilisateurs cibles sont :
+
+- les clients achetant des billets,
+
+- les agents de contrôle vérifiant la validité des titres de transport,
+
+- l’administrateur système, responsable de la configuration statique du réseau, des services et de la base client.
+
+Le produit final doit garantir un fonctionnement fiable, une communication claire entre composants et une utilisation conforme au périmètre défini.
 
 ### 1.2. Contexte métier
-### 1.3. Vocabulaire spécifique
+
+Le domaine de la billetterie numérique implique une série de notions métiers centrales :
+
+- **Un réseau de transport**, composé d’au moins dix villes reliées par des services ferroviaires planifiés. Ce réseau est déterminé à l’avance et ne peut être modifié dynamiquement dans le cadre du projet.
+
+- **Des clients enregistrés**, disposant d’identifiants permettant l’émission de titres personnalisés. Ces clients constituent un ensemble fixe au démarrage du système.
+
+- **Des services de transport** définis par un train, une date, une heure et un trajet allant d’un point A à un point B. Chaque service correspond à un événement unique et constitue une unité facturable.
+
+- **Une mécanique de tarification** rudimentaire, reflétant le coût d’un service sans nécessiter l’intégration de solutions de paiement réelles.
+
+- **L’émission de titres client-dépendants**, comportant **un code optique** servant d’identifiant unique du billet. Ce code sert de support à la vérification locale et doit garantir la non-répudiation du titre.
+
+- **Un contrôle localisé**, assuré par une application spécifique capable de lire le code optique et d’interroger le serveur pour déterminer si le billet présenté est valide pour le service en cours.
+
+Ce contexte délimite clairement les responsabilités du système, les interactions essentielles entre les acteurs et les flux d’information critiques permettant la validation correcte d’un titre.
+
+### 1.3. Vocabulaire spécifique (Glossaire métier)
 
 ---
 
@@ -263,7 +290,20 @@ Dans un contexte où la dématérialisation des services publiques et la sécuri
 
 ## 6. Critères de validation
 
+Les critères de validation définissent l’ensemble des conditions permettant d’évaluer objectivement la conformité du système final aux exigences formulées dans le Cahier de Charges. Ils constituent la base permettant au client, aux utilisateurs et à l’équipe de développement de juger si le produit livré répond correctement aux besoins fonctionnels et non fonctionnels.
 
+### 6.1. Validation des exigences fonctionnelles
 
-(neu nguoi dung cuop the thi sao)
-(le probleme de synchronisation via wifi - lag k kip load thi sao)
+Le système sera considéré conforme si les opérations suivantes peuvent être réalisées de manière correcte, cohérente et reproductible :
+
+- Gestion d’un réseau fixe d’au moins dix villes.
+
+- Gestion d’un ensemble de clients prédéfinis, correctement identifiés.
+
+- Achat et émission d’un billet unique, associé à un service spécifique et à un client déterminé.
+
+- Génération d’un code optique unique et décodable pour chaque billet.
+
+- Authentification localisée d’un billet à partir de l’unité de contrôle.
+
+- Gestion explicite des cas d’erreur (billet inexistant, service incorrect, duplication, format invalide).
