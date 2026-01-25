@@ -100,8 +100,64 @@ Ce contexte délimite clairement les responsabilités du système, les interacti
 ---
 
 ## 2. Objectifs
-    - Fonctionnel (à qui, à quelles fins)
-    - Non-Fonctionnel (Sécurité - par ex doit éviter les fraudes, simplicité d'utilisation )
+
+### 2.1 Objectifs fonctionnels
+
+L’objectif principal du projet est de concevoir une application de billetterie ferroviaire numérique permettant à des utilisateurs finaux d’acheter, stocker et utiliser des billets de train de manière dématérialisée sur un réseau ferroviaire fixe.
+
+Le système devra permettre :
+
+- à un **voyageur** :
+  - de créer un compte utilisateur ;
+  - de rechercher un trajet entre deux points A et B du réseau ferroviaire ;
+  - d’acheter un billet pour un trajet donné ;
+  - de consulter ses billets achetés ;
+  - de présenter un billet sous forme de code QR lors d’un contrôle ;
+  - de recevoir des notifications liées à ses billets (achat, validation, expiration).
+
+- à un **contrôleur** :
+  - de scanner un code QR associé à un billet ;
+  - de vérifier la validité d’un billet (en ligne ou hors ligne) ;
+  - d’identifier un billet déjà validé ou invalide.
+
+- au **système central** :
+  - de gérer les utilisateurs, billets et trajets ;
+  - d’assurer l’unicité et la traçabilité des billets ;
+  - de centraliser et arbitrer les validations de billets ;
+  - de limiter les risques de fraude.
+
+Le projet vise donc à couvrir l’ensemble du cycle de vie d’un billet ferroviaire :  
+**recherche → achat → émission → validation → expiration**.
+
+---
+
+### 2.2 Objectifs non fonctionnels
+
+En complément des fonctionnalités métier, le système devra respecter plusieurs objectifs non fonctionnels essentiels à sa qualité et à sa viabilité.
+
+#### Sécurité
+- Garantir l’intégrité des billets électroniques.
+- Empêcher la falsification ou la duplication des billets.
+- Protéger les données personnelles des utilisateurs.
+- Assurer une authentification fiable pour les opérations sensibles.
+
+#### Fiabilité
+- Garantir un fonctionnement cohérent même en cas de connexion réseau instable.
+- Assurer la synchronisation correcte entre validations locales et serveur central.
+- Prévenir les incohérences liées aux validations multiples.
+
+#### Simplicité d’utilisation
+- Proposer une interface utilisateur intuitive et accessible.
+- Limiter les actions nécessaires pour acheter ou contrôler un billet.
+- Rendre l’expérience fluide aussi bien pour les voyageurs que pour les contrôleurs.
+
+#### Performance
+- Permettre des temps de réponse rapides pour la recherche de trajets et la validation des billets.
+- Supporter un nombre raisonnable de connexions simultanées sans dégradation notable du service.
+
+#### Maintenabilité et évolutivité
+- Reposer sur des technologies standards et open-source.
+- Permettre l’évolution future du système (paiements réels, intégration à des services tiers, extension du réseau).
 
 ---
 
@@ -233,8 +289,42 @@ Le système devra notifier l’utilisateur : de l’émission d’un billet; de 
 
 ---
 
-## 5. Hypothèses & Limitations 
-    - Simplifications acceptées (par ex: paiements simulés)
+## 5. Hypothèses & Limitations
+
+### 5.1 Hypothèses retenues
+
+Dans le cadre de ce projet, plusieurs hypothèses simplificatrices sont acceptées afin de réduire la complexité de conception et de mise en œuvre :
+
+- Le réseau ferroviaire est **fixe et prédéfini** (pas de gestion dynamique des lignes ou horaires).
+- Les **paiements sont simulés** et ne font pas intervenir de prestataire bancaire réel.
+- Les utilisateurs disposent d’un **terminal compatible** (smartphone ou appareil de contrôle avec caméra).
+- Les contrôleurs utilisent une version dédiée de l’application ou un module spécifique.
+- Les identités des utilisateurs sont validées via un système interne simplifié (pas d’intégration FranceConnect).
+- Les billets sont exclusivement **numériques** (aucune gestion de billets papier).
+
+---
+
+### 5.2 Limitations du système
+
+Certaines limites fonctionnelles et techniques sont assumées dans le cadre du projet :
+
+- En mode hors ligne, seule une **pré-validation locale** est possible :
+  - la validation définitive dépend d’une synchronisation ultérieure avec le serveur ;
+  - en cas de conflit, la décision du serveur prévaut.
+
+- Le système ne garantit pas une prévention absolue de la fraude hors ligne :
+  - une tentative de double validation peut être détectée uniquement lors de la synchronisation.
+
+- Les performances du système peuvent être impactées :
+  - en cas de réseau fortement dégradé ;
+  - lors de pics d’utilisation simultanée.
+
+- Le système ne gère pas :
+  - les remboursements complexes ;
+  - les changements de trajet après achat ;
+  - les abonnements longue durée.
+
+- Les services externes (cartographie, paiement réel, identité numérique) sont **hors périmètre** du projet, mais pourront être envisagés dans une version ultérieure.
 
 ---
 
