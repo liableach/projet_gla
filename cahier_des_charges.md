@@ -64,37 +64,21 @@ Ce contexte délimite clairement les responsabilités du système, les interacti
 ### 1.3. Vocabulaire spécifique (Glossaire métier)
 
 - **Billet** : Titre de transport électronique émis pour un client donné et associé à un service de transport spécifique (train, date, heure, trajet).
-
 - **Billet valide** : Billet dont les conditions métier sont remplies (paiement effectué ou simulé, service existant, date et heure dans la fenêtre de validité, non expiré).
-
 - **Billet validé** : Billet valide pour lequel une validation a été enregistrée par le système (après contrôle par une unité de contrôle et confirmation par le serveur central).
-
 - **Service de transport** : Instance de trajet planifiée correspondant à un train donné à une date et une heure précises, reliant un point A à un point B.
-
 - **Trajet** : Itinéraire entre une ville de départ et une ville d’arrivée à l’intérieur du réseau de transport (peut être composé d’un ou plusieurs services, selon les choix de conception).
-
 - **Réseau de transport** : Ensemble fixe de villes et de liaisons ferroviaires définies dans le système. Ce réseau est configuré statiquement et ne peut pas être modifié dynamiquement pendant l’exécution.
-
 - **Client** : Utilisateur final achetant et utilisant des billets pour voyager sur le réseau de transport.
-
 - **Contrôleur (ou unité de contrôle)** : Agent (et/ou application) chargé de vérifier la validité des billets présentés par les clients, à l’aide d’un terminal capable de lire le code optique et de communiquer avec le serveur.
-
 - **Administrateur système** : Utilisateur disposant de droits élevés, responsable de la configuration initiale du réseau (villes, services, tarifs) et de la gestion de la base de clients.
-
 - **Code optique (code QR)** : Représentation graphique (par exemple un code QR) permettant d’encoder un identifiant de billet, lisible par un terminal de contrôle. Le code optique ne doit pas contenir directement de données personnelles.
-
 - **Serveur central** : Composant applicatif principal hébergeant la logique métier, la base de données et l’API exposée aux clients (interface web, unité de contrôle, etc.). Il constitue l’unique source de vérité pour l’état global des billets.
-
 - **Mode dégradé** : Mode de fonctionnement de l’unité de contrôle en l’absence de connexion réseau, limité au contrôle local des billets à partir des données en cache, sans modification de l’état global sur le serveur central.
-
 - **Contrôle local** : Vérification effectuée par l’unité de contrôle à partir des données disponibles localement (cache de billets), permettant de déterminer si un billet est présenté comme valide ou invalide, sans changer l’état global du billet côté serveur.
-
 - **Validation globale** : Décision finale de validation d’un billet, enregistrée sur le serveur central. C’est cette validation globale qui fait foi en cas de conflit ou de tentative de fraude.
-
 - **Cache local** : Ensemble de données stockées temporairement sur l’unité de contrôle (par exemple, les billets d’une journée donnée) pour permettre un contrôle local en cas de perte de connexion réseau.
-
 - **Journal de contrôle** : Historique des contrôles effectués par une unité de contrôle, comprenant au minimum l’identifiant du billet, la date et l’heure du contrôle, le terminal utilisé et le résultat du contrôle (positif ou négatif).
-
 - **Fenêtre de validité** : Intervalle de temps pendant lequel un billet est considéré comme utilisable pour un service donné (par exemple depuis une heure donnée jusqu’à 10 minutes après l’heure d’arrivée prévue).
 
 ---
@@ -243,9 +227,9 @@ La synchronisation avec le serveur devra permettre la résolution de conflits li
     - Le contenu du code QR ne devra pas permettre l’accès direct aux données personnelles.
     - Le système devra empêcher la validation multiple d’un même billet au niveau du serveur si le billet est déjà validé, ou prévenir le contrôleur que ce billet est déjà validé. Ici on fait une distinction entre être validé et être valide : 
 
-            * un billet valide est un billet qui a une vraie validité au niveau du paiement, de la date, du temps et du trajet.
+         * un billet valide est un billet qui a une vraie validité au niveau du paiement, de la date, du temps et du trajet.
     
-            * un billet validé est un billet VALIDE qui a été validé par un controlleur.
+         * un billet validé est un billet VALIDE qui a été validé par un controlleur.
 
 #### 4.1.4. Validation des billets
 
@@ -302,7 +286,6 @@ Dans le cadre de ce projet, plusieurs hypothèses simplificatrices sont accepté
 - Les identités des utilisateurs sont validées via un système interne simplifié (pas d’intégration FranceConnect).
 - Les billets sont exclusivement **numériques** (aucune gestion de billets papier).
 
----
 
 ### 5.2 Limitations du système
 
