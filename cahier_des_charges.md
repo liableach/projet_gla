@@ -30,8 +30,8 @@ Dans un contexte où la dématérialisation des services publiques et la sécuri
     - la recherche, l'achat et l'émission de billets électroniques
     - la gestion d'un réseau fixe de services de transport
     - la vérification locale des titres par une unité de contrôle
-    - l'identification d'un client via un code optique
-    - la réduction des risques de fraude
+    - l'identification d'un client via un code optique unique
+    - la réduction des risques de fraude et de duplications abusives
 
 Le système vise principalement un environnement pédagogique et expérimental, mais doit refléter les contraintes essentielles d’un système réel : cohérence fonctionnelle, intégrité des données, traçabilité des actions et robustesse face aux usages courants.
 
@@ -63,6 +63,40 @@ Ce contexte délimite clairement les responsabilités du système, les interacti
 
 ### 1.3. Vocabulaire spécifique (Glossaire métier)
 
+- **Billet** : Titre de transport électronique émis pour un client donné et associé à un service de transport spécifique (train, date, heure, trajet).
+
+- **Billet valide** : Billet dont les conditions métier sont remplies (paiement effectué ou simulé, service existant, date et heure dans la fenêtre de validité, non expiré).
+
+- **Billet validé** : Billet valide pour lequel une validation a été enregistrée par le système (après contrôle par une unité de contrôle et confirmation par le serveur central).
+
+- **Service de transport** : Instance de trajet planifiée correspondant à un train donné à une date et une heure précises, reliant un point A à un point B.
+
+- **Trajet** : Itinéraire entre une ville de départ et une ville d’arrivée à l’intérieur du réseau de transport (peut être composé d’un ou plusieurs services, selon les choix de conception).
+
+- **Réseau de transport** : Ensemble fixe de villes et de liaisons ferroviaires définies dans le système. Ce réseau est configuré statiquement et ne peut pas être modifié dynamiquement pendant l’exécution.
+
+- **Client** : Utilisateur final achetant et utilisant des billets pour voyager sur le réseau de transport.
+
+- **Contrôleur (ou unité de contrôle)** : Agent (et/ou application) chargé de vérifier la validité des billets présentés par les clients, à l’aide d’un terminal capable de lire le code optique et de communiquer avec le serveur.
+
+- **Administrateur système** : Utilisateur disposant de droits élevés, responsable de la configuration initiale du réseau (villes, services, tarifs) et de la gestion de la base de clients.
+
+- **Code optique (code QR)** : Représentation graphique (par exemple un code QR) permettant d’encoder un identifiant de billet, lisible par un terminal de contrôle. Le code optique ne doit pas contenir directement de données personnelles.
+
+- **Serveur central** : Composant applicatif principal hébergeant la logique métier, la base de données et l’API exposée aux clients (interface web, unité de contrôle, etc.). Il constitue l’unique source de vérité pour l’état global des billets.
+
+- **Mode dégradé** : Mode de fonctionnement de l’unité de contrôle en l’absence de connexion réseau, limité au contrôle local des billets à partir des données en cache, sans modification de l’état global sur le serveur central.
+
+- **Contrôle local** : Vérification effectuée par l’unité de contrôle à partir des données disponibles localement (cache de billets), permettant de déterminer si un billet est présenté comme valide ou invalide, sans changer l’état global du billet côté serveur.
+
+- **Validation globale** : Décision finale de validation d’un billet, enregistrée sur le serveur central. C’est cette validation globale qui fait foi en cas de conflit ou de tentative de fraude.
+
+- **Cache local** : Ensemble de données stockées temporairement sur l’unité de contrôle (par exemple, les billets d’une journée donnée) pour permettre un contrôle local en cas de perte de connexion réseau.
+
+- **Journal de contrôle** : Historique des contrôles effectués par une unité de contrôle, comprenant au minimum l’identifiant du billet, la date et l’heure du contrôle, le terminal utilisé et le résultat du contrôle (positif ou négatif).
+
+- **Fenêtre de validité** : Intervalle de temps pendant lequel un billet est considéré comme utilisable pour un service donné (par exemple depuis une heure donnée jusqu’à 10 minutes après l’heure d’arrivée prévue).
+
 ---
 
 ## 2. Objectifs
@@ -87,7 +121,7 @@ La validation définitive d’un billet nécessitera un accès au ****serveur ce
         
 Cela n'est possible qu'avec une connexion au réseau stable, un requis non négligeable pour acceder à la base de données afin de valider les informations avec la meilleure précision.
 
-Le système devra ****prévoir un mode dégradé en cas d’indisponibilité du réseau****, limité à la lecture du billet et à une pré-validation locale : Il faut penser au fait que la validation définitive n'est possible que avec la connexion au réseau, ce qui n'est pas toujours le cas (dans le tunnels, sur des stations loin de la civilisation). Pour résoudre ce probléme, une proposition consiste à implementer une validation "partielle" sans réseau, qui permettra valider au moins l'integralité du billet, la cohérence crypto et de marquer que le ticket a été validé localement. Cette contrainte est nécessaire et est utilisée par plusieurs systèmes comme SNCF.
+Le système devra ****prévoir un mode dégradé en cas d’indisponibilité du réseau****, limité à la lecture du billet et au contrôle local : Il faut penser au fait que la validation définitive n'est possible que avec la connexion au réseau, ce qui n'est pas toujours le cas (dans le tunnels, sur des stations loin de la civilisation). Pour résoudre ce probléme, une proposition consiste à implementer une validation "partielle" sans réseau, qui permettra valider au moins l'integralité du billet, la cohérence crypto et de marquer que le ticket a été validé localement. Cette contrainte est nécessaire et est utilisée par plusieurs systèmes comme SNCF.
 
 ### 3.2. Contraintes de sécurité
 
@@ -101,7 +135,11 @@ Il faut toujours penser à la fraude. On propose d'introduire une solution class
 
 ****Chaque billet devra être identifié de manière unique**** :Contrainte d'unicité assez typique qui consiste à faire de sorte que chaque identifiant de tickets soit unique. C'est assez réalisable et n'est pas le piége le plus difficile de ce projet.
 
-****Un même billet ne devra pas pouvoir être validé plusieurs fois au niveau global**** :Comme déjà précisé, il y aura 2 niveaux de validation (locale et globale). La validation globale ne pourra se faire qu'une seule fois. Qu'est-ce-qu'on va faire si le billet sera validé la deuxieme fois? Après la validation, on le marque valide et on garde les informations suivantes : par qui il a été validé et quand. Lors les vérifications suivantes, ces informations seront affichées pour les controlleurs. Il faut également penser au cas où le ticket a été bien validé, mais où l'utilisateur souhaite l'utiliser une deuxième fois pour un autre trajet. Comment on fait? On peut résoudre ce probléme grâce à une validité globale du ticket. Pour chaque trajet on aura une heure approximative d'arrivée. Chaque minute, lorsque le serveur actualise les données, il marquera invalides tous les billets dont l'heure d'arrivée + 10 minutes (temps approximative pour sortir du quai et où pendant lequel une validation peut encore avoir lieu) est déjà dépassée. Ce n'est pas la solutions la plus sécurisé, mais cela permet quand-même de réduire fortement les tentatives de fraude.
+****Un même billet ne devra pas pouvoir être validé plusieurs fois au niveau global**** :Comme déjà précisé, il y aura 2 niveaux de validation (locale et globale). La validation globale ne pourra se faire qu'une seule fois. Qu'est-ce-qu'on va faire si le billet sera validé la deuxieme fois? Après la validation, on le marque valide et on garde les informations suivantes : par qui il a été validé et quand. Lors les vérifications suivantes, ces informations seront affichées pour les controlleurs. Il faut également penser au cas où le ticket a été bien validé, mais où l'utilisateur souhaite l'utiliser une deuxième fois pour un autre trajet. 
+
+***Comment on fait?***
+
+ On peut résoudre ce probléme grâce à une validité globale du ticket. Pour chaque trajet on aura une heure approximative d'arrivée. Chaque minute, lorsque le serveur actualise les données, il marquera invalides tous les billets dont l'heure d'arrivée + 10 minutes (temps approximative pour sortir du quai et où pendant lequel une validation peut encore avoir lieu) est déjà dépassée. Ce n'est pas la solutions la plus sécurisé, mais cela permet quand-même de réduire fortement les tentatives de fraude.
 
 ****Les données personnelles des utilisateurs ne devront pas apparaître dans les codes QR**** :Cette contrainte est trés typique et demandée par nombreux standards de sécurité au niveau gouvernement. Aucune information personnelle ne sera stockée dans les codes générés, uniquement l'identifiant de l'utilisateur et l'identifiant du billet.
 
@@ -155,18 +193,15 @@ La synchronisation avec le serveur devra permettre la résolution de conflits li
 
 #### 4.1.4. Validation des billets
 
-La validation définitive d’un billet nécessitera une communication avec le serveur.
+La validation définitive d’un billet nécessitera une communication avec le serveur central.
     
 En cas d’indisponibilité du réseau, le système devra permettre :
 
-    * la lecture du code QR;
+    - la lecture du code optique ;
+    - un contrôle local du billet à partir des données disponibles en cache ;
+    - l’enregistrement du résultat de ce contrôle dans un journal local pour synchronisation ultérieure.
 
-    * une pré-validation locale temporaire.
-
-Toute validation locale devra être synchronisée ultérieurement avec le serveur.
-
-En cas de conflit, la première validation enregistrée par le serveur fera foi.
-
+Toute décision de validation globale d’un billet restera de la responsabilité du serveur central. En cas de conflit (plusieurs contrôles pour le même billet), la première validation enregistrée par le serveur fera foi.
 
 #### 4.1.5. Notifications
 
@@ -194,7 +229,7 @@ Le système devra notifier l’utilisateur : de l’émission d’un billet; de 
 
     - Le serveur agit comme autorité centrale de validation.
 
-    - Les terminaux de contrôle ne disposent d’aucune autorité de validation définitive, celle-ci est assurée par le système principal.
+    - L’unité de contrôle ne pourra effectuer qu’une validation locale temporaire.
 
 ---
 
@@ -242,11 +277,12 @@ Le système est jugé acceptable lorsque :
 
 Dans un contexte ferroviaire réel, l’unité de contrôle peut être utilisée dans un environnement à connectivité faible, instable ou inexistante. Le système devra donc respecter les critères suivants :
 
-    - Tolérance à l’absence de réseau : En cas de non-disponibilité de Wi-Fi ou de données mobiles, l’unité de contrôle doit afficher un message explicite indiquant que l’authentification en temps réel est impossible, sans provoquer d’erreur interne ni de blocage.
-    - Comportement fail-safe : En absence de connexion, l’application ne doit jamais valider un billet, ni produire de décision ambiguë. Elle doit rester neutre pour éviter toute violation des règles de sécurité.
-    - Non-altération des données locales : L’absence de réseau ne doit entraîner aucune corruption, perte ou duplication de données stockées localement.
-    - Reprise automatique des opérations : Dès que la connectivité est rétablie, l’application doit retrouver un fonctionnement normal sans nécessiter de redémarrage manuel.
-    - Cohérence après synchronisation : Le rétablissement du réseau ne doit pas créer d’état incohérent entre l’unité de contrôle et le serveur central.
+    - Tolérance à l’absence de réseau : En cas de non-disponibilité de Wi-Fi ou de données mobiles, l’unité de contrôle doit afficher un message explicite indiquant que la validation en temps réel auprès du serveur central est impossible, tout en restant pleinement utilisable pour effectuer un contrôle local du billet (lecture du code optique et consultation des données en cache).
+    Contrôle local sans modification de l’état global
+    - En l’absence de connexion réseau, l’application de contrôle doit pouvoir : lire le code optique du billet ; vérifier, à partir des données locales en cache, si le billet est valide (service,date, heure, fenêtre de validité, statut non-utilisé) ; et retourner un résultat de contrôle local au contrôleur (par exemple : « présenté comme valide » / « présenté comme invalide »). Dans ce mode, l’application ne doit en aucun cas modifier l’état global du billet sur le système central : un billet ne peut pas être marqué comme validé au niveau global tant que la communication avec le serveur n’a pas eu lieu.
+    - Journalisation des contrôles locaux : Chaque contrôle réalisé hors ligne doit être enregistré dans un journal local, incluant au minimum : l’identifiant du billet, la date et l’heure du contrôle, l’identifiant du terminal de contrôle et le résultat du contrôle local. Ces informations seront utilisées lors de la synchronisation ultérieure avec le serveur central.
+    -  Non-altération des données locales : L’absence de réseau ne doit entraîner aucune corruption, perte ou duplication des données stockées localement (cache de billets, journal de contrôles). Les opérations de lecture et d’écriture locales doivent rester atomiques et robustes face aux coupures de connexion.- Reprise automatique et synchronisation des contrôle: Dès que la connectivité est rétablie, l’application doit retrouver un fonctionnement normal sans nécessiter de redémarrage manuel. Les contrôles enregistrés localement doivent être synchronisés automatiquement avec le serveur central, qui :met à jour l’état global des billets concernés (première validation globale faisant foi) ; signale les éventuels conflits (billet déjà validé auparavant) comme cas de suspicion de fraude.
+    - Cohérence après synchronisation : Le rétablissement du réseau ne doit pas créer d’état incohérent entre l’unité de contrôle et le serveur central. Après synchronisation, l’application de contrôle doit refléter l’état global effectif de chaque billet (valide, validé, expiré, refusé, en conflit) de manière non ambiguë pour le contrôleur.
 
 ### 6.5. Conditions de conformité finale
 
