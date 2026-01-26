@@ -271,7 +271,7 @@ Le système génère un billet électronique unique avec son code optique.
 
 Le billet est ajouté au compte du client et devient consultable.
 
-#### Scénario 2 — Consultation des billets par un client
+#### Scénario 2 - Consultation des billets par un client
 
     - Acteur principal : Client
     - Pré-conditions : Le client possède au moins un billet émis.
@@ -345,7 +345,7 @@ L’unité de contrôle met à jour l’état affiché de chaque billet.
 
 Le journal local est vidé ou marqué comme synchronisé.
 
-#### Scénario 6 — Expiration automatique d’un billet
+#### Scénario 6 - Expiration automatique d’un billet
 
     - Acteur principal : Système central
     - Pré-conditions : La fenêtre de validité du billet est dépassée.
