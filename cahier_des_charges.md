@@ -29,8 +29,8 @@ Dans un contexte où la dématérialisation des services publiques et la sécuri
 
     - la recherche, l'achat et l'émission de billets électroniques
     - la gestion d'un réseau fixe de services de transport
-    - la vérification locale des titres par une unité de contrôle
-    - l'identification d'un client via un code optique unique
+    - la vérification locale des billets électroniques par une unité de contrôle
+    - l'identification d'un client via un code optique unique // un photo plut^t 
     - la réduction des risques de fraude et de duplications abusives
 
 Le système vise principalement un environnement pédagogique et expérimental, mais doit refléter les contraintes essentielles d’un système réel : cohérence fonctionnelle, intégrité des données, traçabilité des actions et robustesse face aux usages courants.
@@ -53,7 +53,7 @@ Le domaine de la billetterie numérique implique une série de notions métiers 
 
     - **Des services de transport** définis par un train, une date, une heure et un trajet allant d’un point A à un point B. Chaque service correspond à un événement unique et constitue une unité facturable.
 
-    - **Une mécanique de tarification** rudimentaire, reflétant le coût d’un service sans nécessiter l’intégration de solutions de paiement réelles.
+    - **Une mécanisme de tarification** rudimentaire, reflétant le coût d’un service sans nécessiter l’intégration de solutions de paiement réelles.
 
     - **L’émission de titres client-dépendants**, comportant **un code optique** servant d’identifiant unique du billet. Ce code sert de support à la vérification locale et doit garantir la non-répudiation du titre.
 
@@ -79,7 +79,7 @@ Ce contexte délimite clairement les responsabilités du système, les interacti
 - **Validation globale** : Décision finale de validation d’un billet, enregistrée sur le serveur central. C’est cette validation globale qui fait foi en cas de conflit ou de tentative de fraude.
 - **Cache local** : Ensemble de données stockées temporairement sur l’unité de contrôle (par exemple, les billets d’une journée donnée) pour permettre un contrôle local en cas de perte de connexion réseau.
 - **Journal de contrôle** : Historique des contrôles effectués par une unité de contrôle, comprenant au minimum l’identifiant du billet, la date et l’heure du contrôle, le terminal utilisé et le résultat du contrôle (positif ou négatif).
-- **Fenêtre de validité** : Intervalle de temps pendant lequel un billet est considéré comme utilisable pour un service donné (par exemple depuis une heure donnée jusqu’à 10 minutes après l’heure d’arrivée prévue).
+- **Créneau de validité** : Intervalle de temps pendant lequel un billet est considéré comme utilisable pour un service donné (par exemple depuis une heure donnée jusqu’à 10 minutes après l’heure d’arrivée prévue).
 - **API REST** : Interface de programmtion permettant l'échange de données entre les clients (Mobile, Unité de contrôle) et le serveur via le protocole HTTP et le format JSON.
 - **Idempotence** : Propriété garantissant qu'une opération peut être répétée plusieurs fois sans changer le résultat au-delà de la première application, éviter les erreurs lorsde synchronisations multiples. 
 
@@ -157,7 +157,7 @@ Dans notre cas, les exemples de telles interactions sont la créations du compte
 
 Le backend devra être implémenté sous forme de service ****web (API REST)**** : Une contrainte nécessaire est de faire les services fonctionner et de les faire communiquer entre eux. Pour cela, on implementera une API pour nos services.
 
-Les données devront être stockées dans une ****base de données relationnelle**** (PostgreSQL) : Comme les données doivent être stockées quelque part, on va implémenter une base de données qui sauvegardera les données des utilisateurs, les billets achetés et les trajets. Chaque fois qu'on aura besoin d'accéder aux données, on enverra une requête à cette base, qui nous transmettra éventuellement les données demandées. 
+Les données devront être stockées dans une ****base de données relationnelle**** : Comme les données doivent être stockées quelque part, on va implémenter une base de données qui sauvegardera les données des utilisateurs, les billets achetés et les trajets. Chaque fois qu'on aura besoin d'accéder aux données, on enverra une requête à cette base, qui nous transmettra éventuellement les données demandées. 
 
 La validation définitive d’un billet nécessitera un accès au ****serveur central**** : Le système de validation des billets est l'un des aspects les plus durs de ce projet. Il faut penser à beaucoup de choses, comme la fraude ou les billets simplement invalides.
         
