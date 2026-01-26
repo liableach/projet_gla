@@ -20,7 +20,7 @@ Qui s'occupe de quoi :
 Cdc: 
 # 💡 Un système de gestion de la billetterie d'un réseau ferroviaire 
 
-## 1. Contexte, Glossaire (Vocabulaire du domaine c'est quoi wwebservice, controller par ex)
+## 1. Contexte, Glossaire 
 
 ### 1.1. Contexte général du projet
 Le présent projet s'inscrit dans la conception d'un système de billetterie numérique permettant la gestion complète de titres de transport pour un réseau ferroviaire simplifié.
@@ -80,6 +80,8 @@ Ce contexte délimite clairement les responsabilités du système, les interacti
 - **Cache local** : Ensemble de données stockées temporairement sur l’unité de contrôle (par exemple, les billets d’une journée donnée) pour permettre un contrôle local en cas de perte de connexion réseau.
 - **Journal de contrôle** : Historique des contrôles effectués par une unité de contrôle, comprenant au minimum l’identifiant du billet, la date et l’heure du contrôle, le terminal utilisé et le résultat du contrôle (positif ou négatif).
 - **Fenêtre de validité** : Intervalle de temps pendant lequel un billet est considéré comme utilisable pour un service donné (par exemple depuis une heure donnée jusqu’à 10 minutes après l’heure d’arrivée prévue).
+- **API REST** : Interface de programmtion permettant l'échange de données entre les clients (Mobile, Unité de contrôle) et le serveur via le protocole HTTP et le format JSON.
+- **Idempotence** : Propriété garantissant qu'une opération peut être répétée plusieurs fois sans changer le résultat au-delà de la première application, éviter les erreurs lorsde synchronisations multiples. 
 
 ---
 
@@ -181,9 +183,9 @@ Il faut toujours penser à la fraude. On propose d'introduire une solution class
 
  On peut résoudre ce probléme grâce à une validité globale du ticket. Pour chaque trajet on aura une heure approximative d'arrivée. Chaque minute, lorsque le serveur actualise les données, il marquera invalides tous les billets dont l'heure d'arrivée + 10 minutes (temps approximative pour sortir du quai et où pendant lequel une validation peut encore avoir lieu) est déjà dépassée. Ce n'est pas la solutions la plus sécurisé, mais cela permet quand-même de réduire fortement les tentatives de fraude.
 
-****Les données personnelles des utilisateurs ne devront pas apparaître dans les codes QR**** :Cette contrainte est trés typique et demandée par nombreux standards de sécurité au niveau gouvernement. Aucune information personnelle ne sera stockée dans les codes générés, uniquement l'identifiant de l'utilisateur et l'identifiant du billet.
+****Architecture "Zero-Trust"**** : Le code optique asssocié à chaque billet ne devra contenir aucune donnée personnelle. ***Toutefois***, pour éviter toute **tentative de falsification reposant sur la génération artificielle de codes séquentiels** (ex: ticket_id = 1,2,3,...), le système devra contenir un identifiant de billet ainsi qu'un mécanisme d'authentification garantissant son intégrité. 
 
-****L’authentification sera requise pour toute opération sensible**** (achat, validation, administration) : Cette contrainte consiste à vérifier les droits nécessaires à gérer le système ou des operations sur un billet.
+****L’authentification sera requise pour toute opération sensible**** (achat, validation, administration) : Cette contrainte consiste à vérifier les droits nécessaires à gérer le système ou des operations sur un billet. 
 
 ### 3.3. Contraintes économiques
 
@@ -242,10 +244,20 @@ En cas d’indisponibilité du réseau, le système devra permettre :
     - l’enregistrement du résultat de ce contrôle dans un journal local pour synchronisation ultérieure.
 
 Toute décision de validation globale d’un billet restera de la responsabilité du serveur central. En cas de conflit (plusieurs contrôles pour le même billet), la première validation enregistrée par le serveur fera foi.
+    - la prévention du rejeu (Anti-replay): Un jeton d'unicité est intégré au processus de synchronisation pour éviter qu'une même requête de validation ne soit traitée deux fois par erreur lors du rétablissement de connexion
 
 #### 4.1.5. Notifications
 
 Le système devra notifier l’utilisateur : de l’émission d’un billet; de sa validation et de son annulation ou expiration.
+
+#### 4.1.6. Gestion des erreurs (Error Handling)
+
+Le système devra gérer et signaler de manière cohérente les erreurs suivantes:
+
+    - Erreurs serveur (5xx): L'application cliente devra afficher un message indiquant une indisponibilité temporaire du service, sans valider ou annuler d'opérations.
+    - Blocage ou indisponibilité de la base de données : Le serveur devra renvoyer un état explicite "service indisponible" et ne modifier aucune donnée.
+    - Perte de connexion pendant l'achat d'un billet : Si le paiement n'a pas été confirmé, aucun billet n'est émis. Par contre, si la confirmation a été envoyée mais le client n'a pas reçu la réponse, une opération d'"idempotence" devra permettre au client de récupérer la billet déjà émis.
+    - Erreurs de lecture du code optique:  COde illisible, altéré, le système notifie: "Billet non authentique"
 
 ### 4.2. Scénarios d’utilisation 
     
@@ -326,20 +338,20 @@ Un enregistrement local du contrôle est ajouté au journal.
 #### Scénario 5 - Synchronisation après reconnection
 
     - Acteur principal : Unité de contrôle + serveur central
-    - Pré-conditions : Des contrôles locaux sont en attente.
-    -Post-conditions : Les billets concernés sont mis à jour au niveau global ; les conflits sont résolus.
+    - Pré-conditions : Des contrôles locaux sont en attente et la connexion réseau est rétablie
+    - Post-conditions : Les billets concernés sont mis à jour au niveau global ; les conflits sont résolus.
 
 ***Déroulement*** :
 
 L’unité de contrôle détecte le retour de la connexion réseau.
 
-Elle envoie au serveur l’ensemble des contrôles locaux enregistrés.
+Elle envoie au serveur central l’ensemble des validations locales, horodatées
 
 Le serveur traite chaque contrôle :
 
-si aucune validation globale n’existe donc il valide globalement,
+si aucune validation globale n’existe donc le serveur **enregistre la première validation chronologiquement**,
 
-si le billet a déjà été validé donc il signale un conflit (suspicion de fraude).
+si le billet a déjà été validé et il provient d'une autre unité: le serveur marque la validation tardive comme **conflit**, potentiellement frauduleuse.
 
 L’unité de contrôle met à jour l’état affiché de chaque billet.
 
