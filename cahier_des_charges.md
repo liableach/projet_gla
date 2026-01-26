@@ -1,24 +1,6 @@
-Sujet : tou-tou (garder pour le nom d'appli)
-
-Idées : 
-    - web service
-    - postgre sql pour la base de données
-    - outis pour gestion en temmps réel
-    - interface utilisateur intuitive
-    - système de notifications pour les tickets, updates
-    - gestion des codes qr (penser à la gestion de validation multiple)
-    - authentification
-    - trouver un trajet entre deux points A et B (implémenter les maps pour ça?) 
-
-
-Qui s'occupe de quoi :
-    - William : interface
-    - Lia : backend
-    - Van trang : base de données, web service
-
-
-Cdc: 
 # 💡 Un système de gestion de la billetterie d'un réseau ferroviaire 
+
+**Auteurs (trice) :** Iloniavo RANDRIAMANGA - Van Trang DANG - William PLAYERS
 
 ## 1. Contexte, Glossaire 
 
@@ -30,56 +12,36 @@ Dans un contexte où la dématérialisation des services publiques et la sécuri
     - la recherche, l'achat et l'émission de billets électroniques
     - la gestion d'un réseau fixe de services de transport
     - la vérification locale des billets électroniques par une unité de contrôle
-    - l'identification d'un client via un code optique unique // un photo plut^t 
+    - l'identification d'un client via les informations obtenues via le code 
     - la réduction des risques de fraude et de duplications abusives
 
 Le système vise principalement un environnement pédagogique et expérimental, mais doit refléter les contraintes essentielles d’un système réel : cohérence fonctionnelle, intégrité des données, traçabilité des actions et robustesse face aux usages courants.
 
-Les utilisateurs cibles sont :
-
-    - les clients achetant des billets,
-    - les agents de contrôle vérifiant la validité des titres de transport,
-    - l’administrateur système, responsable de la configuration statique du réseau, des services et de la base client.
-
-Le produit final doit garantir un fonctionnement fiable, une communication claire entre composants et une utilisation conforme au périmètre défini.
+Les **utilisateurs cibles** sont : les clients achetant des billets, les agents de contrôle vérifiant la validité des titres de transport, l’administrateur système, responsable de la configuration statique du réseau, des services et de la base client.
 
 ### 1.2. Contexte métier
 
-Le domaine de la billetterie numérique implique une série de notions métiers centrales :
+Le projet vise à développer un système simple de billetterie numérique pour un réseau ferroviaire fixe comprenant au moins dix villes, un ensemble de services planifiés et un groupe de clients enregistré. Le système permet la recherche, l’achat et l’émission de billets électroniques associés à un code optique, ainsi que leur vérification par une unité de contrôle utilisée par les agents à bord. 
 
-    - **Un réseau de transport**, composé d’au moins dix villes reliées par des services ferroviaires planifiés. Ce réseau est déterminé à l’avance et ne peut être modifié dynamiquement dans le cadre du projet.
-
-    - **Des clients enregistrés**, disposant d’identifiants permettant l’émission de titres personnalisés. Ces clients constituent un ensemble fixe au démarrage du système.
-
-    - **Des services de transport** définis par un train, une date, une heure et un trajet allant d’un point A à un point B. Chaque service correspond à un événement unique et constitue une unité facturable.
-
-    - **Une mécanisme de tarification** rudimentaire, reflétant le coût d’un service sans nécessiter l’intégration de solutions de paiement réelles.
-
-    - **L’émission de titres client-dépendants**, comportant **un code optique** servant d’identifiant unique du billet. Ce code sert de support à la vérification locale et doit garantir la non-répudiation du titre.
-
-    - **Un contrôle localisé**, assuré par une application spécifique capable de lire le code optique et d’interroger le serveur pour déterminer si le billet présenté est valide pour le service en cours.
-
-Ce contexte délimite clairement les responsabilités du système, les interactions essentielles entre les acteurs et les flux d’information critiques permettant la validation correcte d’un titre.
+Le projet est réalisé dans un cadre pédagogique et vise à reproduire les exigences essentielles d’un système réel : cohérence fonctionnelle, vérifiabilité des billets et réduction des risques de fraude.
 
 ### 1.3. Vocabulaire spécifique (Glossaire métier)
 
 - **Billet** : Titre de transport électronique émis pour un client donné et associé à un service de transport spécifique (train, date, heure, trajet).
-- **Billet valide** : Billet dont les conditions métier sont remplies (paiement effectué ou simulé, service existant, date et heure dans la fenêtre de validité, non expiré).
+- **Billet valide** : Billet dont les conditions métier sont remplies (paiement effectué ou simulé, service existant, date et heure dans le créneau de validité, non expiré).
 - **Billet validé** : Billet valide pour lequel une validation a été enregistrée par le système (après contrôle par une unité de contrôle et confirmation par le serveur central).
 - **Service de transport** : Instance de trajet planifiée correspondant à un train donné à une date et une heure précises, reliant un point A à un point B.
 - **Trajet** : Itinéraire entre une ville de départ et une ville d’arrivée à l’intérieur du réseau de transport (peut être composé d’un ou plusieurs services, selon les choix de conception).
-- **Réseau de transport** : Ensemble fixe de villes et de liaisons ferroviaires définies dans le système. Ce réseau est configuré statiquement et ne peut pas être modifié dynamiquement pendant l’exécution.
-- **Client** : Utilisateur final achetant et utilisant des billets pour voyager sur le réseau de transport.
-- **Contrôleur (ou unité de contrôle)** : Agent (et/ou application) chargé de vérifier la validité des billets présentés par les clients, à l’aide d’un terminal capable de lire le code optique et de communiquer avec le serveur.
-- **Administrateur système** : Utilisateur disposant de droits élevés, responsable de la configuration initiale du réseau (villes, services, tarifs) et de la gestion de la base de clients.
+- **Réseau de transport** : Ensemble fixe de villes et de liaisons ferroviaires définies dans le système.
+- **Contrôleur (ou unité de contrôle)** : Agent (et/ou application) chargé de vérifier la validité des billets présentés par les clients.
 - **Code optique (code QR)** : Représentation graphique (par exemple un code QR) permettant d’encoder un identifiant de billet, lisible par un terminal de contrôle. Le code optique ne doit pas contenir directement de données personnelles.
-- **Serveur central** : Composant applicatif principal hébergeant la logique métier, la base de données et l’API exposée aux clients (interface web, unité de contrôle, etc.). Il constitue l’unique source de vérité pour l’état global des billets.
+- **Serveur central** : Composant applicatif principal hébergeant la logique métier, la base de données et l’API exposée aux clients (interface web, unité de contrôle, etc.). 
 - **Mode dégradé** : Mode de fonctionnement de l’unité de contrôle en l’absence de connexion réseau, limité au contrôle local des billets à partir des données en cache, sans modification de l’état global sur le serveur central.
-- **Contrôle local** : Vérification effectuée par l’unité de contrôle à partir des données disponibles localement (cache de billets), permettant de déterminer si un billet est présenté comme valide ou invalide, sans changer l’état global du billet côté serveur.
-- **Validation globale** : Décision finale de validation d’un billet, enregistrée sur le serveur central. C’est cette validation globale qui fait foi en cas de conflit ou de tentative de fraude.
+- **Contrôle local** : Vérification effectuée par l’unité de contrôle à partir des données disponibles localement (cache de billets).
+- **Validation globale** : Décision finale de validation d’un billet, enregistrée sur le serveur central. 
 - **Cache local** : Ensemble de données stockées temporairement sur l’unité de contrôle (par exemple, les billets d’une journée donnée) pour permettre un contrôle local en cas de perte de connexion réseau.
 - **Journal de contrôle** : Historique des contrôles effectués par une unité de contrôle, comprenant au minimum l’identifiant du billet, la date et l’heure du contrôle, le terminal utilisé et le résultat du contrôle (positif ou négatif).
-- **Créneau de validité** : Intervalle de temps pendant lequel un billet est considéré comme utilisable pour un service donné (par exemple depuis une heure donnée jusqu’à 10 minutes après l’heure d’arrivée prévue).
+- **Créneau de validité** : Intervalle de temps pendant lequel un billet est considéré comme utilisable pour un service donné .
 - **API REST** : Interface de programmtion permettant l'échange de données entre les clients (Mobile, Unité de contrôle) et le serveur via le protocole HTTP et le format JSON.
 - **Idempotence** : Propriété garantissant qu'une opération peut être répétée plusieurs fois sans changer le résultat au-delà de la première application, éviter les erreurs lorsde synchronisations multiples. 
 
@@ -88,62 +50,23 @@ Ce contexte délimite clairement les responsabilités du système, les interacti
 ## 2. Objectifs
 
 ### 2.1 Objectifs fonctionnels
+L’objectif est de gérer le cycle de vie dématérialisé du billet : **Recherche → Achat → Émission → Validation → Expiration.**
 
-L’objectif principal du projet est de concevoir une application de billetterie ferroviaire numérique permettant à des utilisateurs finaux d’acheter, stocker et utiliser des billets de train de manière dématérialisée sur un réseau ferroviaire fixe.
-
-Le système devra permettre :
-
-- à un **voyageur** :
-  - de créer un compte utilisateur ;
-  - de rechercher un trajet entre deux points A et B du réseau ferroviaire ;
-  - d’acheter un billet pour un trajet donné ;
-  - de consulter ses billets achetés ;
-  - de présenter un billet sous forme de code QR lors d’un contrôle ;
-  - de recevoir des notifications liées à ses billets (achat, validation, expiration).
-
-- à un **contrôleur** :
-  - de scanner un code QR associé à un billet ;
-  - de vérifier la validité d’un billet (en ligne ou hors ligne) ;
-  - d’identifier un billet déjà validé ou invalide.
-
-- au **système central** :
-  - de gérer les utilisateurs, billets et trajets ;
-  - d’assurer l’unicité et la traçabilité des billets ;
-  - de centraliser et arbitrer les validations de billets ;
-  - de limiter les risques de fraude.
-
-Le projet vise donc à couvrir l’ensemble du cycle de vie d’un billet ferroviaire :  
-**recherche → achat → émission → validation → expiration**.
-
----
+| Acteur | Capacités du système |
+| :--- | :--- |
+| **Voyageur** | Création de compte, recherche A/B, achat, stockage, consultation et affichage QR, notifications. |
+| **Contrôleur** | Scan QR, vérification (Online/Offline) et identification des statuts. |
+| **Système** | Gestion (User/Billet/Trajet), unicité des titres, arbitrage centralisé et anti-fraude. |
 
 ### 2.2 Objectifs non fonctionnels
 
-En complément des fonctionnalités métier, le système devra respecter plusieurs objectifs non fonctionnels essentiels à sa qualité et à sa viabilité.
-
-#### Sécurité
-- Garantir l’intégrité des billets électroniques.
-- Empêcher la falsification ou la duplication des billets.
-- Protéger les données personnelles des utilisateurs.
-- Assurer une authentification fiable pour les opérations sensibles.
-
-#### Fiabilité
-- Garantir un fonctionnement cohérent même en cas de connexion réseau instable.
-- Assurer la synchronisation correcte entre validations locales et serveur central.
-- Prévenir les incohérences liées aux validations multiples.
-
-#### Simplicité d’utilisation
-- Proposer une interface utilisateur intuitive et accessible.
-- Limiter les actions nécessaires pour acheter ou contrôler un billet.
-- Rendre l’expérience fluide aussi bien pour les voyageurs que pour les contrôleurs.
-
-#### Performance
-- Permettre des temps de réponse rapides pour la recherche de trajets et la validation des billets.
-- Supporter un nombre raisonnable de connexions simultanées sans dégradation notable du service.
-
-#### Maintenabilité et évolutivité
-- Reposer sur des technologies standards et open-source.
-- Permettre l’évolution future du système (paiements réels, intégration à des services tiers, extension du réseau).
+| Catégorie                   | Objectifs non fonctionnels                                                                                  |
+|-----------------------------|--------------------------------------------------------------------------------------------------------------|
+| **Sécurité**                | Intégrité des billets, prévention de la falsification, protection des données personnelles, authentification fiable |
+| **Fiabilité**               | Fonctionnement cohérent en cas de réseau instable, synchronisation correcte, absence d’incohérences          |
+| **Simplicité d’utilisation**| Interface intuitive, actions minimales pour l’achat et le contrôle, expérience fluide                        |
+| **Performance**             | Temps de réponse rapide, gestion d’un nombre raisonnable de connexions simultanées                           |
+| **Maintenabilité & évolutivité** | Usage de technologies standards et open-source, possibilités d’évolution du système (paiements réels, intégrations futures) |
 
 ---
 
@@ -212,39 +135,32 @@ La synchronisation avec le serveur devra permettre la résolution de conflits li
 ### 4.1. Fonctionnalités principales
 
 #### 4.1.1. Recherche de trajet
+Le système devra permettre à un utilisateur de rechercher un trajet entre deux points A et B.
 
-    - Le système devra permettre à un utilisateur de rechercher un trajet entre deux points A et B.
-    - Le calcul du trajet reposera sur un réseau ferroviaire prédéfini.
-    - L’intégration de services cartographiques externes est optionnelle mais trés souhaitable à introduire.
+Le calcul du trajet reposera sur un réseau ferroviaire prédéfini.
+
+L’intégration de services cartographiques externes est optionnelle mais trés souhaitable à introduire.
 
 #### 4.1.2. Achat et émission de billet
 
-    - Le système devra permettre l’achat d’un billet pour un trajet sélectionné (s'il y a des places disponibles).
-    - Le processus de paiement sera simulé.
-    - À l’issue de l’achat, un billet électronique unique devra être émis et sauvegardé dans le compte de l'utilisateur.
+Le système devra permettre l’achat d’un billet pour un trajet sélectionné (s'il y a des places disponibles).
+
+Le processus de paiement sera simulé.
+
+À l’issue de l’achat, un billet électronique unique devra être émis et sauvegardé dans le compte de l'utilisateur.
 
 #### 4.1.3. Génération et gestion des codes QR
-    - Chaque billet devra être associé à un code QR unique.
-    - Le code QR devra permettre l’identification du billet par le système.
-    - Le contenu du code QR ne devra pas permettre l’accès direct aux données personnelles.
-    - Le système devra empêcher la validation multiple d’un même billet au niveau du serveur si le billet est déjà validé, ou prévenir le contrôleur que ce billet est déjà validé. Ici on fait une distinction entre être validé et être valide : 
+Chaque billet devra être associé à un code QR unique. Ce code, dont le contenu ne devra pas permettre l’accès direct aux données personnelles, devra permettre l’identification du billet par le système.
 
-         * un billet valide est un billet qui a une vraie validité au niveau du paiement, de la date, du temps et du trajet.
-    
-         * un billet validé est un billet VALIDE qui a été validé par un controlleur.
+Le système devra empêcher la validation multiple d’un même billet au niveau du serveur si le billet est déjà validé, ou prévenir le contrôleur que ce billet est déjà validé. 
 
 #### 4.1.4. Validation des billets
 
 La validation définitive d’un billet nécessitera une communication avec le serveur central.
     
-En cas d’indisponibilité du réseau, le système devra permettre :
-
-    - la lecture du code optique ;
-    - un contrôle local du billet à partir des données disponibles en cache ;
-    - l’enregistrement du résultat de ce contrôle dans un journal local pour synchronisation ultérieure.
+En cas d’**indisponibilité du réseau**, le système devra permettre : **la lecture du code optique** ; **un contrôle local du billet** à partir des données disponibles en cache;  **l’enregistrement du résultat** de ce contrôle dans un journal local pour synchronisation ultérieure et **la prévention du rejeu** (pour éviter qu'une même requête de validation ne soit traitée deux fois par erreur lors du rétablissement de connexion)
 
 Toute décision de validation globale d’un billet restera de la responsabilité du serveur central. En cas de conflit (plusieurs contrôles pour le même billet), la première validation enregistrée par le serveur fera foi.
-    - la prévention du rejeu (Anti-replay): Un jeton d'unicité est intégré au processus de synchronisation pour éviter qu'une même requête de validation ne soit traitée deux fois par erreur lors du rétablissement de connexion
 
 #### 4.1.5. Notifications
 
@@ -254,13 +170,17 @@ Le système devra notifier l’utilisateur : de l’émission d’un billet; de 
 
 Le système devra gérer et signaler de manière cohérente les erreurs suivantes:
 
-    - Erreurs serveur (5xx): L'application cliente devra afficher un message indiquant une indisponibilité temporaire du service, sans valider ou annuler d'opérations.
-    - Blocage ou indisponibilité de la base de données : Le serveur devra renvoyer un état explicite "service indisponible" et ne modifier aucune donnée.
-    - Perte de connexion pendant l'achat d'un billet : Si le paiement n'a pas été confirmé, aucun billet n'est émis. Par contre, si la confirmation a été envoyée mais le client n'a pas reçu la réponse, une opération d'"idempotence" devra permettre au client de récupérer la billet déjà émis.
-    - Erreurs de lecture du code optique:  COde illisible, altéré, le système notifie: "Billet non authentique"
+**Erreurs serveur (5xx)**: L'application cliente devra afficher un message indiquant une indisponibilité temporaire du service, sans valider ou annuler d'opérations.
+
+**Blocage ou indisponibilité de la base de données** : Le serveur devra renvoyer un état explicite "service indisponible" et ne modifier aucune donnée.
+
+**Perte de connexion pendant l'achat d'un billet** : Si le paiement n'a pas été confirmé, aucun billet n'est émis. Par contre, si la confirmation a été envoyée mais le client n'a pas reçu la réponse, une opération d'"idempotence" devra permettre au client de récupérer le billet déjà émis.
+
+**Erreurs de lecture du code optique**:  Code illisible, altéré, le système notifie: "Billet non authentique"
 
 ### 4.2. Scénarios d’utilisation 
-    
+Seuls les scénarios les plus significatifs ont été retenus afin de décrire de manière concise les usages principaux du système.
+
 #### Scénario 1 - Achat d’un billet
 
     - Acteur principal : Client
@@ -269,37 +189,9 @@ Le système devra gérer et signaler de manière cohérente les erreurs suivante
 
 ***Déroulement*** :
 
-Le client se connecte à son compte.
+Le client se connecte à son compte, recherche un trajet entre deux villes, puis sélectionne un service parmi ceux proposés. Après confirmation de son achat, le système simule le paiement, enregistre la transaction, génère un billet électronique unique avec son code optique et l’ajoute automatiquement au compte du client où il devient consultable.
 
-Il recherche un trajet entre deux villes du réseau.
-
-Le système affiche les services disponibles correspondant au trajet.
-
-Le client sélectionne un service et confirme son intention d’achat.
-
-Le système simule le paiement et enregistre la transaction.
-
-Le système génère un billet électronique unique avec son code optique.
-
-Le billet est ajouté au compte du client et devient consultable.
-
-#### Scénario 2 - Consultation des billets par un client
-
-    - Acteur principal : Client
-    - Pré-conditions : Le client possède au moins un billet émis.
-    - Post-conditions : Aucun changement d’état.
-
-***Déroulement***:
-
-Le client accède à son espace personnel.
-
-Le système affiche la liste de ses billets classés par date.
-
-Le client sélectionne un billet.
-
-Le système affiche :les informations du service, la fenêtre de validité, le code optique, le statut actuel (valide / validé / expiré).
-
-#### Scénario 3 - Validation d’un billet (en ligne)
+#### Scénario 2 - Validation d’un billet (en ligne)
 
     - Acteur principal : Contrôleur
     - Pré-conditions : Le billet est valide et non encore validé au niveau global.
@@ -307,17 +199,9 @@ Le système affiche :les informations du service, la fenêtre de validité, le c
 
 ***Déroulement*** :
 
-Le contrôleur scanne le code optique.
+Le contrôleur scanne le code optique ; l’unité de contrôle envoie alors une requête de validation au serveur central, qui vérifie l’authenticité et la validité du billet. Si tout est conforme, le serveur enregistre la validation globale et renvoie une confirmation explicite du statut au contrôleur
 
-L’unité de contrôle envoie une requête de validation au serveur central.
-
-Le serveur vérifie l’authenticité et la validité du billet.
-
-Si tout est conforme, le serveur enregistre une validation globale.
-
-Le contrôleur reçoit une confirmation explicite du statut du billet.
-
-#### Scénario 4 - Validation d’un billet (hors ligne / mode dégradé)
+#### Scénario 3 - Validation d’un billet (hors ligne / mode dégradé)
 
     - Acteur principal : Contrôleur
     - Pré-conditions : Le billet est valide ; la connexion réseau est indisponible.
@@ -325,17 +209,9 @@ Le contrôleur reçoit une confirmation explicite du statut du billet.
 
 ***Déroulement*** :
 
-Le contrôleur scanne le billet.
+Le contrôleur scanne le billet ; l’unité de contrôle détecte l’absence de réseau et consulte les données disponibles en cache. Elle affiche alors “Présenté comme valide” ou “Présenté comme invalide”, puis enregistre localement le contrôle dans le journal.
 
-L’unité de contrôle détecte l’absence de réseau.
-
-Le système consulte les données disponibles en cache.
-
-Le système affiche : “Présenté comme valide” ou “Présenté comme invalide”.
-
-Un enregistrement local du contrôle est ajouté au journal.
-
-#### Scénario 5 - Synchronisation après reconnection
+#### Scénario 4 - Synchronisation après reconnection
 
     - Acteur principal : Unité de contrôle + serveur central
     - Pré-conditions : Des contrôles locaux sont en attente et la connexion réseau est rétablie
@@ -343,127 +219,50 @@ Un enregistrement local du contrôle est ajouté au journal.
 
 ***Déroulement*** :
 
-L’unité de contrôle détecte le retour de la connexion réseau.
-
-Elle envoie au serveur central l’ensemble des validations locales, horodatées
-
-Le serveur traite chaque contrôle :
-
-si aucune validation globale n’existe donc le serveur **enregistre la première validation chronologiquement**,
-
-si le billet a déjà été validé et il provient d'une autre unité: le serveur marque la validation tardive comme **conflit**, potentiellement frauduleuse.
-
-L’unité de contrôle met à jour l’état affiché de chaque billet.
-
-Le journal local est vidé ou marqué comme synchronisé.
-
-#### Scénario 6 - Expiration automatique d’un billet
-
-    - Acteur principal : Système central
-    - Pré-conditions : La fenêtre de validité du billet est dépassée.
-    - Post-conditions : Le billet passe à l’état “expiré”.
-
-***Déroulement*** :
-
-Le serveur exécute périodiquement la vérification des billets.
-
-Le serveur identifie les billets dont la fenêtre de validité est dépassée.
-
-L’état de ces billets passe à “expiré”.
-
-Le client est notifié de l’expiration.
-
----
+Lorsque la connexion réseau est rétablie, l’unité de contrôle envoie au serveur central l’ensemble des **validations locales horodatées**. Le serveur traite alors chaque contrôle : il **enregistre la première validation chronologiquement** si aucune validation globale n’existe, et marque comme **conflit** toute validation tardive provenant d’une autre unité. L’unité de contrôle met ensuite à jour l’état affiché des billets, puis le journal local est vidé ou marqué comme synchronisé.
 
 ## 5. Hypothèses & Limitations
+Dans le cadre de ce projet, plusieurs hypothèses et limitations sont acceptées afin de réduire la complexité de conception et de mise en œuvre
 
-### 5.1 Hypothèses retenues
-
-Dans le cadre de ce projet, plusieurs hypothèses simplificatrices sont acceptées afin de réduire la complexité de conception et de mise en œuvre :
-
-- Le réseau ferroviaire est **fixe et prédéfini** (pas de gestion dynamique des lignes ou horaires).
-- Les **paiements sont simulés** et ne font pas intervenir de prestataire bancaire réel.
-- Les utilisateurs disposent d’un **terminal compatible** (smartphone ou appareil de contrôle avec caméra).
-- Les contrôleurs utilisent une version dédiée de l’application ou un module spécifique.
-- Les identités des utilisateurs sont validées via un système interne simplifié (pas d’intégration FranceConnect).
-- Les billets sont exclusivement **numériques** (aucune gestion de billets papier).
-
-
-### 5.2 Limitations du système
-
-Certaines limites fonctionnelles et techniques sont assumées dans le cadre du projet :
-
-- En mode hors ligne, seule une **pré-validation locale** est possible :
-  - la validation définitive dépend d’une synchronisation ultérieure avec le serveur ;
-  - en cas de conflit, la décision du serveur prévaut.
-
-- Le système ne garantit pas une prévention absolue de la fraude hors ligne :
-  - une tentative de double validation peut être détectée uniquement lors de la synchronisation.
-
-- Les performances du système peuvent être impactées :
-  - en cas de réseau fortement dégradé ;
-  - lors de pics d’utilisation simultanée.
-
-- Le système ne gère pas :
-  - les remboursements complexes ;
-  - les changements de trajet après achat ;
-  - les abonnements longue durée.
-
-- Les services externes (cartographie, paiement réel, identité numérique) sont **hors périmètre** du projet, mais pourront être envisagés dans une version ultérieure.
-
+| **Hypothèses** | **Limitations** |
+| :--- | :--- |
+| **Réseau :** Fixe et prédéfini (villes/horaires). | **Offline :** Pré-validation locale uniquement. |
+| **Paiement :** Entièrement simulé (pas de banque). | **Fraude :** Détection décalée si mode offline. |
+| **Supports :** 100% numérique (Smartphone/QR). | **Service :** Pas de remboursement ni d'abonnement. |
+| **Utilisateurs :** Terminaux compatibles avec caméra. | **Hors Périmètre :** Cartographie et FranceConnect. |
+| **Contrôle :** Application dédiée aux agents. | **Performance :** Sensible aux pics et réseaux instables. |
 ---
-
 
 ## 6. Critères de validation
 
-Les critères de validation définissent l’ensemble des conditions permettant d’évaluer objectivement la conformité du système final aux exigences formulées dans le Cahier de Charges. Ils constituent la base permettant au client, aux utilisateurs et à l’équipe de développement de juger si le produit livré répond correctement aux besoins fonctionnels et non fonctionnels.
+Les critères de validation définissent l’ensemble des conditions permettant d’évaluer objectivement la conformité du système final aux exigences formulées dans le Cahier de Charges. 
 
 ### 6.1. Validation des exigences fonctionnelles
 
-Le système sera considéré conforme si les opérations suivantes peuvent être réalisées de manière correcte, cohérente et reproductible :
-
-    - Gestion d’un réseau fixe d’au moins dix villes.
-    - Gestion d’un ensemble de clients prédéfinis, correctement identifiés.
-    - Achat et émission d’un billet unique, associé à un service spécifique et à un client déterminé.
-    - Génération d’un code optique unique et décodable pour chaque billet.
-    - Authentification localisée d’un billet à partir de l’unité de contrôle.
-    - Gestion explicite des cas d’erreur (billet inexistant, service incorrect, duplication, format invalide).
+| ID | Exigence | Indicateur de succès |
+| :--- | :--- | :--- |
+| **VAL-01** | **Réseau & Trajet** | Gestion de 10 villes et calcul d'itinéraire A -> B fonctionnel. |
+| **VAL-02** | **Achat & Émission** | Génération d'un billet unique avec QR Code après simulation de paiement. |
+| **VAL-03** | **Contrôle Online** | Mise à jour instantanée du statut en `VALIDÉ` via API. |
+| **VAL-04** | **Mode Dégradé** | Lecture QR, vérification via cache local et stockage des logs hors-ligne. |
+| **VAL-05** | **Synchronisation** | Envoi automatique des logs au serveur et résolution des conflits (fraude). |
 
 ### 6.2. Validation des critères non fonctionnels
 
-Le système devra satisfaire les exigences suivantes :
+Le système doit satisfaire des exigences de qualité minimales.
 
-    - Fiabilité des processus critiques (émission, authentification, communication entre composants).
-    - Performance raisonnable, notamment pour les réponses d’authentification.
-    - Sécurité des données clients et des liens client–billet.
-    - Intégrité des données, sans mise à jour partielle ou incohérente.
-    - Simplicité d’usage, notamment pour l’unité de contrôle.
+En matière de sécurité, le code QR ne doit pas être exploitable par un tiers sans accès aux mécanismes internes du système.
 
-### 6.3. Critères d’acceptation par les parties prenantes
+La fiabilité doit être garantie lors des transitions entre les modes en ligne et hors-ligne, sans perte ni corruption de données.
 
-Le système est jugé acceptable lorsque :
+Les performances attendues imposent un temps de réponse de l’API inférieur à 1000 ms pour les opérations de recherche et de validation dans des conditions normales d’utilisation.
 
-    - Les clients peuvent acheter un billet et obtenir un code optique utilisable sans assistance.
-    - Les agents de contrôle peuvent vérifier un billet rapidement et sans ambiguïté.
-    - L’administrateur peut gérer la configuration initiale sans intervention technique complexe.
-    - Tous les scénarios d’usage définis sont exécutables de bout en bout.
+Enfin, l’ergonomie de l’interface doit permettre à un agent de contrôle d’effectuer la vérification complète d’un billet en moins de 10 secondes.
 
-### 6.4. Validation en conditions de connectivité limitée (usage à bord du train)
+### 6.3. Conditions de conformité finale
 
-Dans un contexte ferroviaire réel, l’unité de contrôle peut être utilisée dans un environnement à connectivité faible, instable ou inexistante. Le système devra donc respecter les critères suivants :
+Le produit est jugé conforme lorsque l’ensemble des scénarios d’usage définis en section 4.2 peut être exécuté de bout en bout sans erreur bloquante.
 
-    - Tolérance à l’absence de réseau : En cas de non-disponibilité de Wi-Fi ou de données mobiles, l’unité de contrôle doit afficher un message explicite indiquant que la validation en temps réel auprès du serveur central est impossible, tout en restant pleinement utilisable pour effectuer un contrôle local du billet (lecture du code optique et consultation des données en cache).
-    Contrôle local sans modification de l’état global
-    - En l’absence de connexion réseau, l’application de contrôle doit pouvoir : lire le code optique du billet ; vérifier, à partir des données locales en cache, si le billet est valide (service,date, heure, fenêtre de validité, statut non-utilisé) ; et retourner un résultat de contrôle local au contrôleur (par exemple : « présenté comme valide » / « présenté comme invalide »). Dans ce mode, l’application ne doit en aucun cas modifier l’état global du billet sur le système central : un billet ne peut pas être marqué comme validé au niveau global tant que la communication avec le serveur n’a pas eu lieu.
-    - Journalisation des contrôles locaux : Chaque contrôle réalisé hors ligne doit être enregistré dans un journal local, incluant au minimum : l’identifiant du billet, la date et l’heure du contrôle, l’identifiant du terminal de contrôle et le résultat du contrôle local. Ces informations seront utilisées lors de la synchronisation ultérieure avec le serveur central.
-    -  Non-altération des données locales : L’absence de réseau ne doit entraîner aucune corruption, perte ou duplication des données stockées localement (cache de billets, journal de contrôles). Les opérations de lecture et d’écriture locales doivent rester atomiques et robustes face aux coupures de connexion.- Reprise automatique et synchronisation des contrôle: Dès que la connectivité est rétablie, l’application doit retrouver un fonctionnement normal sans nécessiter de redémarrage manuel. Les contrôles enregistrés localement doivent être synchronisés automatiquement avec le serveur central, qui :met à jour l’état global des billets concernés (première validation globale faisant foi) ; signale les éventuels conflits (billet déjà validé auparavant) comme cas de suspicion de fraude.
-    - Cohérence après synchronisation : Le rétablissement du réseau ne doit pas créer d’état incohérent entre l’unité de contrôle et le serveur central. Après synchronisation, l’application de contrôle doit refléter l’état global effectif de chaque billet (valide, validé, expiré, refusé, en conflit) de manière non ambiguë pour le contrôleur.
+L’état global des billets enregistré sur le serveur central doit constituer l’unique source de vérité du système.
 
-### 6.5. Conditions de conformité finale
-
-Le produit final est conforme lorsque :
-
-    - Toutes les exigences du Cahier de Charges sont satisfaites.
-    - Aucun comportement contradictoire ou non spécifié ne subsiste dans les fonctions principales.
-    - Les scénarios fonctionnels sont exécutables sans correction manuelle.
-    - Les éventuels écarts sont documentés, justifiés et validés par le client.
+Tout écart technique ou limitation rencontrée lors de l’implémentation doit être explicitement documenté et justifié.
