@@ -251,9 +251,9 @@ Le système devra notifier l’utilisateur : de l’émission d’un billet; de 
     
 #### Scénario 1 - Achat d’un billet
 
-- Acteur principal : Client
-- Pré-conditions : Le client dispose d’un compte valide.
-- Post-conditions : Un billet électronique unique est émis et associé au compte.
+    - Acteur principal : Client
+    - Pré-conditions : Le client dispose d’un compte valide.
+    - Post-conditions : Un billet électronique unique est émis et associé au compte.
 
 ***Déroulement*** :
 
@@ -273,11 +273,11 @@ Le billet est ajouté au compte du client et devient consultable.
 
 #### Scénario 2 — Consultation des billets par un client
 
-- Acteur principal : Client
-- Pré-conditions : Le client possède au moins un billet émis.
-- Post-conditions : Aucun changement d’état.
+    - Acteur principal : Client
+    - Pré-conditions : Le client possède au moins un billet émis.
+    - Post-conditions : Aucun changement d’état.
 
-***Déroulement ***:
+***Déroulement***:
 
 Le client accède à son espace personnel.
 
@@ -289,9 +289,9 @@ Le système affiche :les informations du service, la fenêtre de validité, le c
 
 #### Scénario 3 - Validation d’un billet (en ligne)
 
-- Acteur principal : Contrôleur
-- Pré-conditions : Le billet est valide et non encore validé au niveau global.
-- Post-conditions : Le billet devient validé au niveau global.
+    - Acteur principal : Contrôleur
+    - Pré-conditions : Le billet est valide et non encore validé au niveau global.
+    - Post-conditions : Le billet devient validé au niveau global.
 
 ***Déroulement*** :
 
@@ -307,9 +307,9 @@ Le contrôleur reçoit une confirmation explicite du statut du billet.
 
 #### Scénario 4 - Validation d’un billet (hors ligne / mode dégradé)
 
-- Acteur principal : Contrôleur
-- Pré-conditions : Le billet est valide ; la connexion réseau est indisponible.
-- Post-conditions : Un contrôle local est enregistré, sans modifier l’état global.
+    - Acteur principal : Contrôleur
+    - Pré-conditions : Le billet est valide ; la connexion réseau est indisponible.
+    - Post-conditions : Un contrôle local est enregistré, sans modifier l’état global.
 
 ***Déroulement*** :
 
@@ -325,9 +325,9 @@ Un enregistrement local du contrôle est ajouté au journal.
 
 #### Scénario 5 - Synchronisation après reconnection
 
-- Acteur principal : Unité de contrôle + serveur central
-- Pré-conditions : Des contrôles locaux sont en attente.
--Post-conditions : Les billets concernés sont mis à jour au niveau global ; les conflits sont résolus.
+    - Acteur principal : Unité de contrôle + serveur central
+    - Pré-conditions : Des contrôles locaux sont en attente.
+    -Post-conditions : Les billets concernés sont mis à jour au niveau global ; les conflits sont résolus.
 
 ***Déroulement*** :
 
@@ -347,9 +347,9 @@ Le journal local est vidé ou marqué comme synchronisé.
 
 #### Scénario 6 — Expiration automatique d’un billet
 
-- Acteur principal : Système central
-- Pré-conditions : La fenêtre de validité du billet est dépassée.
-- Post-conditions : Le billet passe à l’état “expiré”.
+    - Acteur principal : Système central
+    - Pré-conditions : La fenêtre de validité du billet est dépassée.
+    - Post-conditions : Le billet passe à l’état “expiré”.
 
 ***Déroulement*** :
 
