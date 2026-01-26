@@ -249,27 +249,117 @@ Le système devra notifier l’utilisateur : de l’émission d’un billet; de 
 
 ### 4.2. Scénarios d’utilisation 
     
-    Scénario "Contrôle d’un billet" :
+#### Scénario 1 - Achat d’un billet
 
-        1) Le contrôleur scanne le code QR du billet.
+- Acteur principal : Client
+- Pré-conditions : Le client dispose d’un compte valide.
+- Post-conditions : Un billet électronique unique est émis et associé au compte.
 
-        2) Le système tente une validation en ligne.
+***Déroulement*** :
 
-        3.a) Si le réseau est disponible, la validation est effectuée sur le serveur.
+Le client se connecte à son compte.
 
-        3.b) Si le réseau est indisponible, une pré-validation locale est enregistrée.
+Il recherche un trajet entre deux villes du réseau.
 
-        4) Une synchronisation ultérieure permet la validation définitive ou la détection d’un conflit.
+Le système affiche les services disponibles correspondant au trajet.
 
-### 4.3. Comportements & protocole (abstrait)
+Le client sélectionne un service et confirme son intention d’achat.
 
-    - Les échanges entre clients et serveur s’effectuent via HTTP.
+Le système simule le paiement et enregistre la transaction.
 
-    - Les données sont transmises au format JSON.
+Le système génère un billet électronique unique avec son code optique.
 
-    - Le serveur agit comme autorité centrale de validation.
+Le billet est ajouté au compte du client et devient consultable.
 
-    - L’unité de contrôle ne pourra effectuer qu’une validation locale temporaire.
+#### Scénario 2 — Consultation des billets par un client
+
+- Acteur principal : Client
+- Pré-conditions : Le client possède au moins un billet émis.
+- Post-conditions : Aucun changement d’état.
+
+***Déroulement ***:
+
+Le client accède à son espace personnel.
+
+Le système affiche la liste de ses billets classés par date.
+
+Le client sélectionne un billet.
+
+Le système affiche :les informations du service, la fenêtre de validité, le code optique, le statut actuel (valide / validé / expiré).
+
+#### Scénario 3 - Validation d’un billet (en ligne)
+
+- Acteur principal : Contrôleur
+- Pré-conditions : Le billet est valide et non encore validé au niveau global.
+- Post-conditions : Le billet devient validé au niveau global.
+
+***Déroulement*** :
+
+Le contrôleur scanne le code optique.
+
+L’unité de contrôle envoie une requête de validation au serveur central.
+
+Le serveur vérifie l’authenticité et la validité du billet.
+
+Si tout est conforme, le serveur enregistre une validation globale.
+
+Le contrôleur reçoit une confirmation explicite du statut du billet.
+
+#### Scénario 4 - Validation d’un billet (hors ligne / mode dégradé)
+
+- Acteur principal : Contrôleur
+- Pré-conditions : Le billet est valide ; la connexion réseau est indisponible.
+- Post-conditions : Un contrôle local est enregistré, sans modifier l’état global.
+
+***Déroulement*** :
+
+Le contrôleur scanne le billet.
+
+L’unité de contrôle détecte l’absence de réseau.
+
+Le système consulte les données disponibles en cache.
+
+Le système affiche : “Présenté comme valide” ou “Présenté comme invalide”.
+
+Un enregistrement local du contrôle est ajouté au journal.
+
+#### Scénario 5 - Synchronisation après reconnection
+
+- Acteur principal : Unité de contrôle + serveur central
+- Pré-conditions : Des contrôles locaux sont en attente.
+-Post-conditions : Les billets concernés sont mis à jour au niveau global ; les conflits sont résolus.
+
+***Déroulement*** :
+
+L’unité de contrôle détecte le retour de la connexion réseau.
+
+Elle envoie au serveur l’ensemble des contrôles locaux enregistrés.
+
+Le serveur traite chaque contrôle :
+
+si aucune validation globale n’existe donc il valide globalement,
+
+si le billet a déjà été validé donc il signale un conflit (suspicion de fraude).
+
+L’unité de contrôle met à jour l’état affiché de chaque billet.
+
+Le journal local est vidé ou marqué comme synchronisé.
+
+#### Scénario 6 — Expiration automatique d’un billet
+
+- Acteur principal : Système central
+- Pré-conditions : La fenêtre de validité du billet est dépassée.
+- Post-conditions : Le billet passe à l’état “expiré”.
+
+***Déroulement*** :
+
+Le serveur exécute périodiquement la vérification des billets.
+
+Le serveur identifie les billets dont la fenêtre de validité est dépassée.
+
+L’état de ces billets passe à “expiré”.
+
+Le client est notifié de l’expiration.
 
 ---
 
