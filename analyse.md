@@ -16,6 +16,8 @@
 - [4. Autres diagrammes](#4-autres-diagrammes)
 - [5. Catalogue de questions / problèmes](#5-catalogue-de-questions--problemes)
 
+<div style="page-break-after: always;"></div>
+
 ## 1. Acteurs et cas d'utilisation
 
 Cette section présente les acteurs principaux du système, selon une approche orientée UML. Un acteur désigne toute entité - humaine ou logicielle - qui intéragit avec le système, influence son comportement ou utilise ses services. Chaque acteur est décrit selon son rôle, ses objectifs, ses interactions possibles et ses limites opérationnelles.
