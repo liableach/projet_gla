@@ -1,0 +1,29 @@
+@startuml
+title Activity - Offline Validation + Sync
+
+start
+:Scanner billet (code optique);
+if (Réseau disponible ?) then (Oui)
+  :Basculer vers validation online;
+  stop
+else (Non)
+  :Charger cache sécurisé;
+  if (Billet trouvé dans cache ?) then (Oui)
+    if (Déjà validé localement ?) then (Oui)
+      :Refuser / alerter doublon;
+    else (Non)
+      :Valider localement;
+      :Écrire dans journal offline;
+    endif
+  else (Non)
+    :Refuser (info insuffisante);
+  endif
+  :Attendre retour réseau;
+  if (Réseau revenu ?) then (Oui)
+    :Synchroniser journal vers serveur;
+    :Résolution conflits (horodatage serveur);
+    :Mettre à jour statut billet;
+  endif
+  stop
+endif
+@enduml

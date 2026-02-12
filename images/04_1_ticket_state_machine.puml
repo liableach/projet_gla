@@ -1,0 +1,40 @@
+@startuml
+title Ticket - State Machine (Cycle de vie)
+
+[*] --> Draft : ticket non émis
+Draft --> Issued : paiement accepté / émission billet
+Draft --> Cancelled : paiement refusé / annulation
+
+state Issued {
+  [*] --> Valid
+  Valid --> Used : validation contrôleur (online ou offline)
+  Valid --> Expired : heure d'arrivée + 10 min atteinte
+  Valid --> FraudSuspected : détection doublon / incohérence
+  FraudSuspected --> Valid : décision serveur = OK
+  FraudSuspected --> Invalid : décision serveur = fraude
+}
+
+Issued --> Archived : après Used ou Expired (fin de vie)
+
+Used --> Archived
+Expired --> Archived
+Cancelled --> [*]
+Invalid --> Archived
+
+note right of Valid
+- Billet consultable par voyageur
+- Présentation QR / code optique
+- Valide si:
+  * non expiré
+  * non utilisé
+  * authentique
+end note
+
+note right of Used
+En mode offline:
+- validation locale
+- journalisation
+- synchronisation ultérieure
+end note
+
+@enduml

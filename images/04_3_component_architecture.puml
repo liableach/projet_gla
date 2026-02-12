@@ -1,0 +1,41 @@
+@startuml
+title Component Diagram - Billetterie ferroviaire (vue logique)
+
+package "Client" {
+  [App Voyageur] as AppV
+}
+
+package "Contrôle" {
+  [Terminal Contrôleur] as TermC
+}
+
+package "Back-end" {
+  [API Billetterie] as API
+  [Service Validation] as VAL
+  [Service Tickets] as TKS
+  [Service Comptes] as ACC
+  [Base de données] as DB
+}
+
+package "Externe" {
+  [Paiement simulé] as PAY
+}
+
+AppV --> API : recherche trajets / achat / consultation
+TermC --> API : validation online / sync journal
+API --> ACC
+API --> TKS
+API --> VAL
+ACC --> DB
+TKS --> DB
+VAL --> DB
+API --> PAY : demande autorisation paiement
+
+note right of TermC
+Mode offline:
+- cache local
+- journal offline
+- sync plus tard
+end note
+
+@enduml
