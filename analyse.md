@@ -67,12 +67,128 @@ Ce système est minimaliste : il ne vérifie pas de carte bancaire, ne communiqu
 
 --- 
 
+<div style="page-break-after: always;"></div>
+
 ## 2. Scénarios d’utilisation (20 pages scnenarios)
 
 
-## 1. Purchase Ticket - Sequence Diagram
+### 2.1. Scénario 1: Achat d’un billet 
 
 ![Purchase Ticket](images/2_1.svg)
+
+#### 2.1.1. Objectif du scénario
+
+Ce scénario décrit l’ensemble du processus fonctionnel et technique permettant à un voyageur d’acheter un billet électronique dans le système de billetterie Tou-Tou. Il couvre l’interaction entre l’utilisateur final, l’interface applicative, le serveur central, le service de paiement simulé et la base de données.
+
+L’objectif principal de ce scénario est de garantir :
+
+    - une recherche fiable des trajets disponibles,
+    - la vérification de la disponibilité des places,
+    - un processus d’achat cohérent,
+    - la génération d’un billet unique avec code QR,
+    - et l’enregistrement persistant du billet dans le système central.
+
+Ce scénario représente un cas d’usage central du système, car il initie le cycle de vie du billet (création → utilisation → validation → expiration).
+
+#### 2.1.2. Acteurs impliqués
+Le scénario met en jeu plusieurs acteurs et composants logiciels :
+
+    - Utilisateur (Voyageur) : acteur humain initiant l’achat.
+    - Ticket System (Application) : interface cliente et logique applicative.
+    - Central Server : composant central chargé de la logique métier et de la cohérence globale.
+    - Payment Service (simulé) : système externe représentant le paiement.
+    - Base de données (DB) : stockage persistant des trajets et des billets.
+
+Cette séparation des rôles reflète une architecture client–serveur classique, permettant une bonne maintenabilité et une évolutivité du système.
+
+#### 2.1.3. Déroulement nominal détaillé (basé sur le diagramme de séquence)
+**Recherche de trajet**
+
+Le scénario débute lorsque l’utilisateur initie une recherche de trajet en fournissant deux paramètres : ville de départ (A) et ville d’arrivée (B).
+
+L’application cliente transmet cette requête au serveur central via l’appel requestTrips(A,B).
+Le serveur central interroge ensuite la base de données par findTrips(A,B) afin de récupérer l’ensemble des services de transport correspondant aux critères demandés.
+
+La liste des trajets disponibles est renvoyée à l’application, qui les affiche à l’utilisateur.
+Cette étape met en évidence la séparation des responsabilités : l’interface ne contient aucune logique métier complexe, celle-ci étant centralisée sur le serveur.
+
+**Sélection du trajet et vérification de disponibilité**
+
+Une fois les trajets affichés, l’utilisateur sélectionne un service précis.
+L’application vérifie alors la disponibilité des places via checkAvailability(tripId) auprès du serveur central.
+
+Le serveur consulte la base de données par checkSeats(tripId) afin de s’assurer que le service dispose encore de places disponibles.
+Si la réponse est positive, le serveur confirme la disponibilité à l’application.
+
+Cette étape est cruciale pour éviter des incohérences telles que la vente de billets pour un service complet. Elle illustre l’importance de la cohérence transactionnelle entre le serveur central et la base de données.
+
+**Processus de paiement simulé**
+
+Après confirmation de la disponibilité, l’utilisateur valide son intention d’achat.
+L’application déclenche alors le processus de paiement via processPayment() auprès du service de paiement simulé.
+
+Bien que le paiement soit fictif dans le cadre du projet, ce composant est modélisé comme un système externe afin de refléter une architecture réaliste.
+Une réponse positive (payment OK) permet de poursuivre le scénario nominal.
+
+Cette abstraction permet d’envisager facilement l’intégration future d’un véritable prestataire de paiement sans modifier l’architecture globale du système.
+
+**Création et persistance du billet**
+
+Une fois le paiement validé, l’application demande au serveur central de créer le billet via createTicket(userId, tripId).
+Le serveur central génère alors un billet électronique unique, associé au voyageur et au service sélectionné.
+
+Le billet est enregistré dans la base de données par saveTicket().
+Le serveur retourne ensuite à l’application les informations du billet ainsi que le code QR généré.
+
+Cette étape garantit : l’unicité du billet, sa traçabilité, et sa persistance côté serveur, ce qui permet un contrôle ultérieur fiable.
+
+**Notification à l’utilisateur**
+
+Enfin, l’application notifie l’utilisateur que le billet a bien été émis.
+L’utilisateur peut désormais consulter son billet dans son espace personnel et afficher le QR code lors d’un contrôle.
+
+Cette dernière étape clôt le scénario nominal et marque le passage du billet à l’état valide dans le cycle de vie du titre de transport.
+
+#### 2.1.4. Analyse technique et choix d’architecture
+
+Ce scénario illustre plusieurs principes fondamentaux de conception logicielle :
+
+**Architecture client–serveur :** L’application cliente ne contient pas de logique métier critique ; toute décision importante est prise par le serveur central.
+
+**Responsabilité unique (SRP) :** Chaque composant a un rôle bien défini :
+
+    - le client gère l’IHM,
+    - le serveur central gère les règles métier,
+    - la base de données assure la persistance,
+    - le service de paiement gère la validation du paiement.
+
+**Scalabilité :** Le découplage entre application, serveur central et service de paiement permet de faire évoluer chaque composant indépendamment.
+
+**Cohérence transactionnelle :** La création du billet n’est possible qu’après confirmation du paiement et de la disponibilité des places, ce qui évite les états incohérents.
+
+#### 2.1.5. Scénarios alternatifs et gestion des erreurs 
+
+Bien que le diagramme de séquence représente le scénario nominal, plusieurs cas alternatifs doivent être pris en compte :
+
+    - Indisponibilité réseau lors de la recherche de trajets
+    - Paiement refusé
+    - Indisponibilité des places
+    - Erreur serveur lors de la création du billet
+    - Problème d’idempotence en cas de coupure réseau après paiement
+
+Ces cas seront détaillés dans les scénarios alternatifs du cas d’usage « Acheter un billet ».
+
+#### 2.1.6. Rôle du scénario dans l’architecture globale
+
+Ce scénario constitue le point d’entrée du cycle de vie d’un billet.
+Il est étroitement lié aux scénarios suivants :
+
+    - Contrôle du billet (online / offline)
+    - Synchronisation après contrôle hors-ligne
+    - Expiration automatique du billet
+    - Détection de fraude
+
+Ainsi, il sert de fondation fonctionnelle aux scénarios 2 à 7 du système.
 
 ## 2. Online Validation - Sequence Diagram
 ![Online Validation](images/2_2.svg)
