@@ -1,0 +1,40 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor Voyageur
+actor Controleur
+actor Admin
+actor "Service Paiement (simulé)" as Pay
+
+rectangle "Système de billetterie (Client + API + DB)" as System {
+  usecase "Rechercher trajet" as UC_Search
+  usecase "Acheter billet" as UC_Buy
+  usecase "Consulter billet/QR" as UC_View
+  usecase "Valider billet (online)" as UC_ValidateOnline
+  usecase "Pré-valider billet (offline)" as UC_PreValidate
+  usecase "Synchroniser pré-validations" as UC_Sync
+  usecase "Configurer réseau/services" as UC_AdminConf
+  usecase "Expirer billets" as UC_Expire
+}
+
+Voyageur --> UC_Search
+Voyageur --> UC_Buy
+Voyageur --> UC_View
+
+Controleur --> UC_ValidateOnline
+Controleur --> UC_PreValidate
+Controleur --> UC_Sync
+
+Admin --> UC_AdminConf
+
+Pay --> UC_Buy
+
+note right of System
+Frontière = "le système" doit être unique et claire.
+Ici: on inclut Client+API+DB.
+Si vous analysez seulement l'API,
+alors "App Voyageur" et "Terminal contrôleur"
+deviennent des acteurs externes.
+end note
+@enduml

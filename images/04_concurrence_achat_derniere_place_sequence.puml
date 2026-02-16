@@ -1,0 +1,36 @@
+@startuml
+hide footbox
+actor Voyageur as U1
+actor Voyageur2 as U2
+participant "App" as App1
+participant "App" as App2
+participant "API Serveur" as S
+database "DB" as DB
+
+== Deux achats simultanés sur la dernière place ==
+par
+U1 -> App1: Confirmer achat(trajetId)
+U2 -> App2: Confirmer achat(trajetId)
+
+App1 -> S: POST /purchase(trajetId, reqId=R1)
+App2 -> S: POST /purchase(trajetId, reqId=R2)
+
+S -> DB: BEGIN TX
+S -> DB: SELECT seats_left FROM Trajet WHERE id=... FOR UPDATE
+DB --> S: seats_left=1
+S -> DB: UPDATE Trajet SET seats_left=0
+S -> DB: INSERT Ticket(...)
+S -> DB: COMMIT
+S --> App1: 201 Ticket + QR
+
+S -> DB: BEGIN TX
+S -> DB: SELECT seats_left FROM Trajet WHERE id=... FOR UPDATE
+DB --> S: seats_left=0
+S -> DB: ROLLBACK
+S --> App2: 409 SOLD_OUT
+
+note over S,DB
+Problème: sans verrou/transaction, survente possible.
+Solution: TX + lock (FOR UPDATE) + contrainte.
+end note
+@enduml

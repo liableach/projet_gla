@@ -1,0 +1,24 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Utilisateur {
+  +userId: UUID
+  +email: String
+  +passwordHash: String
+}
+
+enum RoleType { VOYAGEUR; CONTROLEUR; ADMIN }
+
+class RoleAssignment {
+  +id: UUID
+  +type: RoleType
+  +active: Boolean
+}
+
+Utilisateur "1" -- "0..*" RoleAssignment
+
+note right of RoleAssignment
+Résout: "un user peut cumuler plusieurs rôles"
+et gérer l'activation/désactivation.
+end note
+@enduml

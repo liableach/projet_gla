@@ -1,0 +1,17 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class Trajet { +trajetId: UUID }
+class Ticket { +ticketId: UUID +status: String }
+class Utilisateur { +userId: UUID }
+
+Trajet "1" -- "0..*" Ticket
+Utilisateur "1" -- "0..*" Ticket
+
+note bottom
+Question: suppression Trajet/Utilisateur ?
+Option A: RESTRICT (interdire si tickets existent)
+Option B: SOFT DELETE (flag disabled)
+Option C: anonymisation user, conserver tickets (audit)
+end note
+@enduml

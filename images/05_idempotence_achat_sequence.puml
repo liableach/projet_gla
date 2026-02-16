@@ -1,0 +1,29 @@
+@startuml
+hide footbox
+actor Voyageur
+participant "App Voyageur" as App
+participant "API Serveur" as S
+database "DB" as DB
+participant "Paiement simulé" as Pay
+
+== Achat avec reqId (idempotence) ==
+Voyageur -> App: Acheter(trajet)
+App -> S: POST /purchase(reqId=UUID, trajetId, userId)
+
+S -> DB: SELECT Purchase WHERE reqId=...
+alt reqId inconnu
+  S -> Pay: processPayment()
+  Pay --> S: OK
+  S -> DB: INSERT Purchase(reqId, status=PAID)
+  S -> DB: INSERT Ticket(...)
+  S --> App: 201 Ticket
+else reqId déjà traité
+  S -> DB: SELECT Ticket WHERE purchase.reqId=...
+  S --> App: 200 Ticket (déjà émis)
+end
+
+note right of S
+Question clé: comment générer reqId ?
+-> côté client, stable entre retries.
+end note
+@enduml

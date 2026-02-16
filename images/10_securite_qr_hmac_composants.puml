@@ -1,0 +1,22 @@
+@startuml
+skinparam componentStyle rectangle
+
+component "Terminal contrôle" as Term
+component "API Serveur" as API
+database "DB" as DB
+component "KeyStore (serveur)" as KS
+
+Term --> API : validate(ticketId, signature, ts, nonce)
+API --> KS : getActiveKey()
+KS --> API : secretKey
+API --> API : verifyHMAC(ticketId|ts|nonce)
+
+API --> DB : check ticket + status
+API --> DB : write validation (si OK)
+
+note right of KS
+Question: rotation de clés ?
+- keyId dans le QR
+- clés actives + clés expirées
+end note
+@enduml

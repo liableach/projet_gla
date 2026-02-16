@@ -1,0 +1,36 @@
+@startuml
+hide footbox
+actor Controleur as C1
+actor Controleur2 as C2
+participant "Terminal" as T1
+participant "Terminal" as T2
+participant "API Serveur" as S
+database "DB" as DB
+
+== Deux scans en même temps ==
+C1 -> T1: scan(ticketId)
+C2 -> T2: scan(ticketId)
+
+T1 -> S: POST /validate(ticketId)
+T2 -> S: POST /validate(ticketId)
+
+par
+S -> DB: BEGIN TX
+S -> DB: SELECT status FROM Ticket WHERE id=... FOR UPDATE
+DB --> S: status=VALID
+S -> DB: UPDATE Ticket SET status=VALIDATED
+S -> DB: INSERT ValidationGlobale(ticketId, controllerId, ts)
+S -> DB: COMMIT
+S --> T1: VALIDATED
+
+S -> DB: BEGIN TX
+S -> DB: SELECT status FROM Ticket WHERE id=... FOR UPDATE
+DB --> S: status=VALIDATED
+S -> DB: COMMIT
+S --> T2: ALREADY_VALIDATED + info(ts, controllerId)
+end
+
+note over S,DB
+Sans lock + contrainte unique, double validation possible.
+end note
+@enduml

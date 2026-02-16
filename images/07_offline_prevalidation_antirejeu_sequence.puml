@@ -1,0 +1,26 @@
+@startuml
+hide footbox
+actor Controleur
+participant "Terminal contrôle" as Term
+database "Cache local sécurisé" as Cache
+
+Controleur -> Term: scan(QR)
+Term -> Term: détecter réseau = OFF
+Term -> Term: vérifier QR(HMAC/format)
+
+alt QR invalide
+  Term --> Controleur: "Billet non authentique"
+else QR ok
+  Term -> Cache: upsert PreValidation(ticketId, terminalId, ts, nonce)
+  alt déjà pré-validé localement (même ticketId)
+    Term --> Controleur: "Déjà scanné (local) - suspicion"
+  else nouvelle pré-validation
+    Term --> Controleur: "Pré-validation locale enregistrée"
+  end
+end
+
+note right of Cache
+Anti-rejeu: stocker un "nonce" / "scanId"
+pour éviter d'enregistrer 2x la même requête.
+end note
+@enduml

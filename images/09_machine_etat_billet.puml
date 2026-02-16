@@ -1,0 +1,21 @@
+@startuml
+[*] --> EMIS : paiement OK\nbillet créé
+
+EMIS --> VALIDE : billet utilisable
+VALIDE --> PREVALIDE_LOCAL : scan offline
+PREVALIDE_LOCAL --> VALIDE : (option) si on n'altère pas l'état global
+VALIDE --> VALIDE_GLOBAL : validation online
+PREVALIDE_LOCAL --> VALIDE_GLOBAL : sync acceptée
+
+VALIDE --> EXPIRE : cron expiration
+PREVALIDE_LOCAL --> EXPIRE : expiration avant sync
+VALIDE_GLOBAL --> EXPIRE : fin fenêtre + tolérance
+
+VALIDE_GLOBAL --> [*]
+EXPIRE --> [*]
+
+note right of PREVALIDE_LOCAL
+Statut local (terminal), pas forcément en DB centrale.
+Peut être modélisé comme une entité séparée.
+end note
+@enduml

@@ -1,0 +1,31 @@
+@startuml
+hide footbox
+participant "Terminal" as Term
+database "Cache local" as Cache
+participant "API Serveur" as S
+database "DB" as DB
+
+Term -> Cache: getPendingPreValidations()
+Term -> S: POST /sync(preValidations[])
+
+loop pour chaque preValidation pv
+  S -> DB: SELECT Ticket.status, validationInfo WHERE ticketId=pv.ticketId
+  alt Ticket.status == VALID
+    S -> DB: UPDATE Ticket SET status=VALIDATED
+    S -> DB: INSERT ValidationGlobale(..., source="OFFLINE_SYNC", pv.ts, pv.terminalId)
+    S --> Term: CONFIRMED(pv.scanId)
+  else Ticket.status == VALIDATED
+    S --> Term: REJECTED_CONFLICT(pv.scanId, firstValidationInfo)
+  else Ticket.status == EXPIRED or INVALID
+    S --> Term: REJECTED_INVALID(pv.scanId)
+  end
+end
+
+Term -> Cache: markSynced(decisions)
+
+note over S
+Question: priorité au timestamp local ?
+-> horloges non fiables, à discuter.
+Alternative: "first write wins" côté serveur.
+end note
+@enduml

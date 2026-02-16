@@ -1,0 +1,128 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+'========================
+' Identité / Authentification
+'========================
+class Utilisateur {
+  +userId: UUID
+  +email: String
+  +passwordHash: String
+  +nom: String
+  +prenom: String
+  +etat: AccountStatus
+  +createdAt: DateTime
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+class Session {
+  +sessionId: UUID
+  +accessTokenHash: String
+  +refreshTokenHash: String
+  +issuedAt: DateTime
+  +expiresAt: DateTime
+  +revokedAt: DateTime
+  +deviceInfo: String
+  +ip: String
+}
+
+Utilisateur "1" -- "0..*" Session
+
+note right of Session
+On stocke des HASH de tokens, pas les tokens en clair.
+En projet: peut être simplifié.
+end note
+
+'========================
+' Autorisation (RBAC + permissions)
+'========================
+class Role {
+  +roleId: UUID
+  +name: RoleName
+}
+
+enum RoleName {
+  VOYAGEUR
+  CONTROLEUR
+  ADMIN
+}
+
+class Permission {
+  +permissionId: UUID
+  +code: String
+  +description: String
+}
+
+class UserRole {
+  +id: UUID
+  +assignedAt: DateTime
+  +revokedAt: DateTime
+  +active(): Boolean
+}
+
+Utilisateur "1" -- "0..*" UserRole
+Role "1" -- "0..*" UserRole
+
+Role "0..*" -- "0..*" Permission
+
+note bottom of Role
+RBAC: un rôle agrège des permissions.
+Ex: CONTROLEUR -> SCAN_QR, VALIDATE_ONLINE, SYNC_OFFLINE
+end note
+
+'========================
+' Organisation (option utile)
+'========================
+class Organisation {
+  +orgId: UUID
+  +name: String
+  +type: OrgType
+}
+
+enum OrgType {
+  OPERATEUR_RESEAU
+  SOCIETE_CONTROLE
+}
+
+class Membership {
+  +id: UUID
+  +joinedAt: DateTime
+  +leftAt: DateTime
+  +title: String
+}
+
+Organisation "1" -- "0..*" Membership
+Utilisateur "1" -- "0..*" Membership
+
+note right of Organisation
+Optionnel mais utile pour:
+- rattacher contrôleurs à un organisme
+- tracer les validations par organisme
+end note
+
+'========================
+' Traçabilité des actions (audit)
+'========================
+class AuditEvent {
+  +eventId: UUID
+  +actorUserId: UUID
+  +action: String
+  +targetType: String
+  +targetId: UUID
+  +at: DateTime
+  +result: String
+}
+
+Utilisateur "0..1" -- "0..*" AuditEvent
+
+note bottom of AuditEvent
+Permet de répondre à:
+"Qui a validé ce billet ? quand ? depuis quel compte ?"
+end note
+
+@enduml
