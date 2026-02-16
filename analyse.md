@@ -1261,3 +1261,148 @@ Pour simplifier le projet :
 ---
 
 ## 4. Catalogue de questions / problèmes (3 pages)
+
+## 4. Catalogue de questions / problèmes
+
+Cette section recense les questions de conception et risques techniques identifiés lors de l’analyse.  
+Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégradé, concurrence) avant la conception détaillée et l’implémentation.
+
+---
+
+### 4.1. Frontière du système et responsabilités (scope)
+
+**Question / risque :**
+- Où commence et où finit “le système” ? (App voyageur + terminal contrôle + API + DB ? ou seulement l’API ?)
+- Quels éléments sont acteurs externes vs composants internes ?
+
+**Conséquence si mal défini :**
+- Diagrammes incohérents, responsabilités floues, tests difficiles.
+
+**Diagramme associé :**
+- (Code) `images/01_frontiere_systeme_usecase.puml`
+
+---
+
+### 4.2. Modélisation des utilisateurs et des rôles
+
+**Question / risque :**
+- Un même compte peut-il cumuler plusieurs rôles (voyageur + contrôleur) ?
+- Comment gérer la gestion des droits (RBAC / permissions) ?
+
+**Conséquence :**
+- Si on fait une simple héritage `Utilisateur -> Voyageur/Contrôleur/Admin`, on bloque souvent les cas réels (multi-rôles).
+- Avec `RoleAssignment`, on peut gérer activation/désactivation.
+
+**Diagrammes associés :**
+- (Rôles multiples, recommandé) `images/03_roles_multiples_roleassignment.puml`
+- (Auth/RBAC enrichi) `images/2_Rôles & authentification.puml` *(idéalement à renommer en ASCII)*
+- (Options images) `images/03_roles_multiples_roleassignment.svg`, `images/02_roles_authentification.svg`
+
+---
+
+### 4.3. Concurrence lors de l’achat (survente / dernière place)
+
+**Question / risque :**
+- Deux utilisateurs achètent en même temps la dernière place → survente si pas de verrouillage.
+
+**Conséquence :**
+- Incohérence DB : billets émis > capacité.
+- Litiges métier (train complet mais billets valides).
+
+**Mesures :**
+- Transaction DB + verrou (`SELECT … FOR UPDATE`) + contrainte.
+
+**Diagramme associé :**
+- (Code) `images/04_concurrence_achat_derniere_place_sequence.puml`
+
+---
+
+### 4.4. Idempotence pendant l’achat (coupure réseau après paiement)
+
+**Question / risque :**
+- Paiement accepté côté serveur, mais réponse perdue côté client → l’utilisateur retente → double billet.
+
+**Solution :**
+- `reqId` unique généré côté client, réutilisé lors des retries.
+- Le serveur doit pouvoir répondre “déjà traité” et renvoyer le billet existant.
+
+**Diagramme associé :**
+- (Code) `images/05_idempotence_achat_sequence.puml`
+
+---
+
+### 4.5. Concurrence lors de la validation en ligne (double scan simultané)
+
+**Question / risque :**
+- Deux contrôleurs scannent le même billet quasi simultanément (ou même contrôleur double scan) → double validation possible sans verrou.
+
+**Solution :**
+- Transaction + verrou + contrainte unique sur validation globale.
+
+**Diagramme associé :**
+- (Code) `images/06_validation_online_concurrente_sequence.puml`
+
+---
+
+### 4.6. Mode hors-ligne : pré-validation locale et anti-rejeu
+
+**Question / risque :**
+- Offline : comment éviter qu’un billet scanné 10 fois soit “accepté” 10 fois localement ?
+- Comment éviter que la même pré-validation soit envoyée plusieurs fois au serveur ?
+
+**Solution :**
+- Journal local avec `scanId/nonce` + déduplication.
+- Stockage sécurisé + horodatage.
+
+**Diagramme associé :**
+- (Code) `images/07_offline_prevalidation_antirejeu_sequence.puml`
+
+---
+
+### 4.7. Synchronisation hors-ligne : arbitrage serveur et conflits
+
+**Question / risque :**
+- Deux terminaux ont pré-validé le même billet en offline → au moment de sync, conflit.
+- Faut-il faire confiance au timestamp local ? (horloges pas fiables)
+
+**Principe :**
+- Serveur arbitre (single source of truth).
+- “First accepted wins”, les autres deviennent “conflict”.
+
+**Diagramme associé :**
+- (Code) `images/08_sync_offline_conflits_sequence.puml`
+
+---
+
+### 4.8. Cycle de vie des billets (états + expiration)
+
+**Question / risque :**
+- États à clarifier : émis / valide / pré-validé local / validé global / expiré.
+- Expiration : quelle règle (arrivée + 10 min) ? qui exécute (cron serveur) ?
+
+**Diagramme associé :**
+- (Code) `images/09_machine_etat_billet.puml`
+
+---
+
+### 4.9. Sécurité : contenu du QR (zéro données perso) + intégrité cryptographique
+
+**Question / risque :**
+- Si le QR contient un ID séquentiel (1,2,3…), un attaquant peut deviner.
+- On doit assurer l’intégrité → signature/HMAC + key management.
+
+**Diagramme associé :**
+- (Code) `images/10_securite_qr_hmac_composants.puml`
+
+---
+
+### 4.10. Intégrité référentielle et suppression des données (DB)
+
+**Question / risque :**
+- Que se passe-t-il si on supprime un trajet ou un utilisateur alors que des billets existent ?
+- RGPD : suppression vs anonymisation vs conservation pour audit.
+
+**Diagramme associé :**
+- (Code) `images/11_integrite_referentielle_class.puml`
+
+
