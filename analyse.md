@@ -577,11 +577,11 @@ Cette approche :
     - préserve la logique métier centrale,
     - permet de gérer des volumes importants de validations hors ligne.
 
-## 5. Automatic Expiration - Sequence Diagram
+## 5. Expiration automatique
 ![Automatic Expiration](images/2_5.svg)
 ### 2.5.1. Objectif du scénario
 
-Ce scénario décrit le processus automatisé permettant au système Tou-Tou de détecter et de marquer comme expirés les billets dont la fenêtre de validité est dépassée.
+Ce scénario décrit le processus automatisé permettant au système de détecter et de marquer comme expirés les billets dont la fenêtre de validité est dépassée.
 Contrairement aux autres scénarios, celui-ci ne dépend d’aucune action humaine : il s’agit d’un mécanisme interne, entièrement orchestré par le serveur central, garantissant la cohérence temporelle de l’ensemble des titres de transport.
 
 L’objectif de ce scénario est de :
@@ -992,7 +992,7 @@ Le terminal bascule automatiquement en mode dégradé.
 
 ---
 
-## 3. Données nécessaires à la compréhension du système (5 à 10 pages)
+## 3. Données nécessaires à la compréhension du système 
 La compréhension complète d’un système de gestion de billetterie numérique nécessite une analyse structurée de l’ensemble des données manipulées au cours du cycle de vie d’un billet.
 Dans le cas du système Tou-Tou, les données ne sont pas uniquement utilisées pour stocker des informations : elles structurent la logique métier, garantissent l’authenticité des titres de transport, sécurisent leur utilisation lors du contrôle, et permettent d’assurer la cohérence du système même en conditions dégradées (mode hors-ligne, coupures réseau, validations concurrentes).
 
@@ -1260,14 +1260,10 @@ Pour simplifier le projet :
 
 ---
 
-## 4. Catalogue de questions / problèmes (3 pages)
-
-## 4. Catalogue de questions / problèmes
+## 4. Catalogue de questions / problèmes 
 
 Cette section recense les questions de conception et risques techniques identifiés lors de l’analyse.  
 Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégradé, concurrence) avant la conception détaillée et l’implémentation.
-
----
 
 ### 4.1. Frontière du système et responsabilités (scope)
 
@@ -1278,11 +1274,6 @@ Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégrad�
 **Conséquence si mal défini :**
 - Diagrammes incohérents, responsabilités floues, tests difficiles.
 
-**Diagramme associé :**
-- (Code) `images/01_frontiere_systeme_usecase.puml`
-
----
-
 ### 4.2. Modélisation des utilisateurs et des rôles
 
 **Question / risque :**
@@ -1292,13 +1283,6 @@ Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégrad�
 **Conséquence :**
 - Si on fait une simple héritage `Utilisateur -> Voyageur/Contrôleur/Admin`, on bloque souvent les cas réels (multi-rôles).
 - Avec `RoleAssignment`, on peut gérer activation/désactivation.
-
-**Diagrammes associés :**
-- (Rôles multiples, recommandé) `images/03_roles_multiples_roleassignment.puml`
-- (Auth/RBAC enrichi) `images/2_Rôles & authentification.puml` *(idéalement à renommer en ASCII)*
-- (Options images) `images/03_roles_multiples_roleassignment.svg`, `images/02_roles_authentification.svg`
-
----
 
 ### 4.3. Concurrence lors de l’achat (survente / dernière place)
 
@@ -1312,11 +1296,6 @@ Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégrad�
 **Mesures :**
 - Transaction DB + verrou (`SELECT … FOR UPDATE`) + contrainte.
 
-**Diagramme associé :**
-- (Code) `images/04_concurrence_achat_derniere_place_sequence.puml`
-
----
-
 ### 4.4. Idempotence pendant l’achat (coupure réseau après paiement)
 
 **Question / risque :**
@@ -1326,11 +1305,6 @@ Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégrad�
 - `reqId` unique généré côté client, réutilisé lors des retries.
 - Le serveur doit pouvoir répondre “déjà traité” et renvoyer le billet existant.
 
-**Diagramme associé :**
-- (Code) `images/05_idempotence_achat_sequence.puml`
-
----
-
 ### 4.5. Concurrence lors de la validation en ligne (double scan simultané)
 
 **Question / risque :**
@@ -1338,11 +1312,6 @@ Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégrad�
 
 **Solution :**
 - Transaction + verrou + contrainte unique sur validation globale.
-
-**Diagramme associé :**
-- (Code) `images/06_validation_online_concurrente_sequence.puml`
-
----
 
 ### 4.6. Mode hors-ligne : pré-validation locale et anti-rejeu
 
@@ -1354,11 +1323,6 @@ Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégrad�
 - Journal local avec `scanId/nonce` + déduplication.
 - Stockage sécurisé + horodatage.
 
-**Diagramme associé :**
-- (Code) `images/07_offline_prevalidation_antirejeu_sequence.puml`
-
----
-
 ### 4.7. Synchronisation hors-ligne : arbitrage serveur et conflits
 
 **Question / risque :**
@@ -1369,21 +1333,11 @@ Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégrad�
 - Serveur arbitre (single source of truth).
 - “First accepted wins”, les autres deviennent “conflict”.
 
-**Diagramme associé :**
-- (Code) `images/08_sync_offline_conflits_sequence.puml`
-
----
-
 ### 4.8. Cycle de vie des billets (états + expiration)
 
 **Question / risque :**
 - États à clarifier : émis / valide / pré-validé local / validé global / expiré.
 - Expiration : quelle règle (arrivée + 10 min) ? qui exécute (cron serveur) ?
-
-**Diagramme associé :**
-- (Code) `images/09_machine_etat_billet.puml`
-
----
 
 ### 4.9. Sécurité : contenu du QR (zéro données perso) + intégrité cryptographique
 
@@ -1391,18 +1345,11 @@ Elle sert à repérer les zones sensibles (cohérence, sécurité, mode dégrad�
 - Si le QR contient un ID séquentiel (1,2,3…), un attaquant peut deviner.
 - On doit assurer l’intégrité → signature/HMAC + key management.
 
-**Diagramme associé :**
-- (Code) `images/10_securite_qr_hmac_composants.puml`
-
----
-
 ### 4.10. Intégrité référentielle et suppression des données (DB)
 
 **Question / risque :**
 - Que se passe-t-il si on supprime un trajet ou un utilisateur alors que des billets existent ?
 - RGPD : suppression vs anonymisation vs conservation pour audit.
 
-**Diagramme associé :**
-- (Code) `images/11_integrite_referentielle_class.puml`
 
 
