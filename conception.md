@@ -45,11 +45,5 @@ implementation data, interfaces to COTS components)
 “the possible use scenarios (30 pages scenarios)”
 “scenarios with concrete data exchanges corresponding to the class diagram”
 
-## 8. Autres diagrammes
-
-- other diagrams (0-10 pp)
-(protocols in collaborative diagrams,
-state-machines for the life-cycle of critical objects,...)
-
-## 9. Object diagrams pour données critiques
+## 8. Object diagrams pour données critiques
 - object diagrams for critical data . . 
