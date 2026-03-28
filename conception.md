@@ -29,12 +29,12 @@ Enfin, ce document constitue une base de référence pour la future phase d’im
 
 (5 pp UML plus descr.)
 
+## 4. Interface utilisateur – GUI Mockups
 
-## 4. Architecture générale du système
+## 5. Architecture générale du système
 - architecture diagram 
 - processus internes
 
-## 5. Interface utilisateur – GUI Mockups
 
 ## 6. Modèle statique - Class Diagrams
  (both library and concrete
