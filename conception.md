@@ -32,18 +32,35 @@ Enfin, ce document constitue une base de référence pour la future phase d’im
 ## 4. Interface utilisateur – GUI Mockups
 
 ## 5. Architecture générale du système
-- architecture diagram 
-- processus internes
-
+![Diagramme](images/conception/diagram_archi.svg)
+![Diagramme](images/conception/diagram_deployment.svg)
+![Diagramme](images/conception/diagram_activity_purchase.svg)
+![Diagramme](images/conception/diagram_activity_validation.svg)
 
 ## 6. Modèle statique - Class Diagrams
- (both library and concrete
-implementation data, interfaces to COTS components)
+ ![Diagramme](images/conception/diagram_classes.svg)
 
 ## 7. Scénarios d’utilisation détaillés 
 
-“the possible use scenarios (30 pages scenarios)”
-“scenarios with concrete data exchanges corresponding to the class diagram”
+# Diagramme Achat d'un Ticket
+![Diagramme](images/conception/diagram_seq_buy.svg)
+# Diagramme Validation d'un Ticket
+![Diagramme](images/conception/diagram_seq_validation.svg)
+# Diagramme Gestion Offline
+![Diagramme](images/conception/diagram_seq_offline.svg)
+# Diagramme Synchronisation après Offline
+![Diagramme](images/conception/diagram_seq_sync.svg)
+# Diagramme Expiration d'un Ticket
+![Diagramme](images/conception/diagram_seq_expiration.svg)
+# Diagramme Gestion de Double Scan
+![Diagramme](images/conception/diagram_seq_double-scan.svg)
+# Diagramme Gestion de Connexion
+![Diagramme](images/conception/diagram_seq_manage-connection.svg)
 
 ## 8. Object diagrams pour données critiques
-- object diagrams for critical data . . 
+# Diagramme Objet Gestion de Validation 
+![Diagramme](images/conception/diagram_object_validation.svg)
+# Diagramme Objet Pré-validation
+![Diagramme](images/conception/diagram_object_pre-validation.svg)
+# Diagramme Objet Double Vérification
+![Diagramme](images/conception/diagram_object_double-scan.svg)
