@@ -222,22 +222,46 @@ L’ensemble des acteurs d’implémentation présentés ci-dessus s’inscrit d
 
 Cette répartition permet d’assurer une séparation claire des responsabilités, une bonne lisibilité de l’architecture ainsi qu’une cohérence avec les diagrammes présentés dans les sections suivantes.
 
-### 3.12. Processus internes
-
-Au-delà des composants visibles de l’architecture, le système repose également sur plusieurs processus internes nécessaires à son bon fonctionnement.
-
-Parmi ceux-ci, on peut notamment identifier :
-
-    - le processus de synchronisation, qui transmet au serveur central les opérations réalisées localement lorsque la connexion réseau est rétablie ;
-    - le processus de gestion de l’expiration, qui met à jour l’état des billets lorsque leur fenêtre de validité est dépassée ;
-    - le processus de notification, qui permet d’informer les utilisateurs lors de certains événements importants du cycle de vie du billet.
-
-Ces processus ne correspondent pas à des interfaces directement manipulées par l’utilisateur, mais ils participent pleinement à l’exécution du système. À ce titre, ils font partie des acteurs d’implémentation au sens large, puisqu’ils assurent des responsabilités techniques essentielles dans l’architecture globale.
-
 ## 4. Architecture générale du système
+### 4.1. Diagramme d’architecture
+
+Le diagramme d’architecture présente l’organisation logique du système de billetterie ferroviaire. Celui-ci repose sur une structure client–serveur dans laquelle plusieurs interfaces clientes communiquent avec un backend centralisé par l’intermédiaire d’une API REST.
+
+Côté client, trois points d’entrée principaux sont identifiés : la Web App, la Mobile App et le Controller Terminal. Les deux premières interfaces sont destinées au voyageur et permettent l’accès aux fonctionnalités classiques de consultation et d’achat. Le terminal de contrôle est, quant à lui, utilisé par les agents pour la vérification des billets.
+
+Toutes les requêtes émises par ces composants transitent par l’API REST, qui constitue le point central de communication du système. Cette API redistribue ensuite les traitements vers les différents services métier du backend, à savoir le Notification Service, le Validation Service, le Ticket Service et le Auth Service. Chacun de ces services prend en charge une responsabilité spécifique : gestion des billets, vérification des validations, authentification des utilisateurs ou diffusion de notifications.
+
+L’ensemble de ces services s’appuie sur une couche de persistance représentée par la PostgreSQL DB, qui stocke les données critiques du système. En parallèle, le diagramme met également en évidence un mécanisme de mode hors ligne, reposant sur un Local Storage associé au terminal de contrôle. Ce composant permet de conserver temporairement certaines informations utiles lorsque le réseau n’est pas disponible.
+
+Ainsi, ce diagramme met en évidence une architecture modulaire, centralisée autour du backend, dans laquelle les responsabilités sont clairement séparées entre interfaces clientes, services applicatifs, persistance des données et support local au fonctionnement hors ligne.
+
 ![Diagramme](images/conception/diagram_archi.svg)
+
+### 4.2. Diagramme de déploiement
+
+Le diagramme de déploiement présente la répartition physique des différents composants logiciels sur les supports d’exécution du système. Il complète le diagramme d’architecture en montrant non plus seulement les rôles logiques des composants, mais également leur emplacement dans l’environnement d’exécution.
+
+Le système distingue d’abord trois environnements côté utilisateur. La Mobile App est déployée sur un smartphone utilisateur, tandis que la Web App est accessible depuis un navigateur web. Le Controller Terminal est, quant à lui, déployé sur un appareil dédié au contrôle, qui dispose également d’un Local Storage permettant la conservation de données utiles en cas d’indisponibilité du réseau.
+
+Les traitements principaux sont centralisés sur un Backend Server, au sein duquel se trouvent l’API REST et les services applicatifs. Le backend reçoit les requêtes provenant des différents clients, coordonne les traitements métiers et interagit avec la couche de persistance.
+
+Les données du système sont stockées sur un Database Server distinct, hébergeant la PostgreSQL DB. Cette séparation entre serveur applicatif et serveur de base de données permet de distinguer clairement les responsabilités d’exécution et de persistance.
+
+Ce diagramme montre ainsi que le système repose sur une répartition cohérente entre clients, terminal de contrôle, serveur applicatif et serveur de données. Il met également en évidence la particularité du terminal de contrôle, seul composant à disposer d’un stockage local, ce qui reflète directement les exigences du projet en matière de fonctionnement hors ligne.
+
 ![Diagramme](images/conception/diagram_deployment.svg)
+
+### 4.3. Processus internes
+#### 4.3.1. Processus interne lié à l’achat d’un billet
+
+Le premier diagramme d’activité illustre le processus interne associé à l’achat d’un billet. Il débute par une recherche de trajet effectuée par l’utilisateur, suivie de l’affichage des services disponibles et de la vérification des places restantes. Si un trajet est sélectionné et que des places sont disponibles, le système poursuit le traitement par une simulation de paiement. En cas de succès, plusieurs opérations internes sont alors déclenchées : génération d’un identifiant unique de billet, création du code QR, enregistrement du billet dans la base de données, association du billet à l’utilisateur, puis envoi d’une notification. Ce diagramme met ainsi en évidence la chaîne de traitements internes qui permet de transformer une intention d’achat en billet effectivement émis par le système.
+
 ![Diagramme](images/conception/diagram_activity_purchase.svg)
+
+#### 4.3.2.Processus interne lié à la validation d’un billet
+
+Le second diagramme d’activité représente le processus interne de validation d’un billet lors d’un contrôle. Après le scan du code QR, le système distingue deux cas selon la disponibilité du réseau. En mode connecté, le billet est transmis au serveur, qui vérifie sa validité avant de retourner une décision de validation ou de signaler un problème. En mode hors ligne, le terminal effectue une pré-validation locale, stocke les informations nécessaires, puis attend le rétablissement de la connexion afin de finaliser le traitement. Une fois la connectivité rétablie, le système reprend le processus de vérification et produit une décision finale. Ce diagramme met en évidence la logique interne de continuité de service, ainsi que l’articulation entre contrôle local temporaire et validation centralisée.
+
 ![Diagramme](images/conception/diagram_activity_validation.svg)
 
 ## 5. Interface utilisateur – GUI Mockups
@@ -262,10 +286,16 @@ Ces processus ne correspondent pas à des interfaces directement manipulées par
 # Diagramme Gestion de Connexion
 ![Diagramme](images/conception/diagram_seq_manage-connection.svg)
 
-## 8. Object diagrams pour données critiques
-# Diagramme Objet Gestion de Validation 
+## 8. Diagrammes d'Objet pour données critiques
+### 8.1. Diagramme d'Objet Gestion de Validation 
+Ce diagramme d’objet illustre un exemple concret de situation de validation d’un billet dans le système. Il met en relation un utilisateur, un contrôleur et un billet déjà validé. L’objectif de cette représentation est de montrer, à travers des instances précises, comment un billet peut être associé à un utilisateur tout en étant pris en charge dans un contexte de contrôle. Le statut VALIDATED indique ici que le billet a déjà été reconnu comme valide par le système, ce qui permet d’illustrer l’état d’un billet après une opération de validation réussie.
+
 ![Diagramme](images/conception/diagram_object_validation.svg)
-# Diagramme Objet Pré-validation
+### 8.2. Diagramme d'Objet Pré-validation
+Ce diagramme représente une situation de pré-validation dans un contexte hors ligne. Le terminal fonctionne ici en mode OFFLINE et manipule un billet avant toute validation définitive par le serveur central. Cette représentation permet d’illustrer le comportement local du système lorsqu’une connexion réseau n’est pas disponible. Elle met en évidence le fait qu’un terminal peut conserver temporairement des informations sur un billet afin de poursuivre le contrôle dans un mode dégradé, avant une éventuelle synchronisation ultérieure avec le backend.
+
 ![Diagramme](images/conception/diagram_object_pre-validation.svg)
-# Diagramme Objet Double Vérification
+### 8.3 Diagramme d'Objet Double Vérification
+Ce diagramme d’objet montre un cas de double vérification d’un même billet. Le billet ticket1 apparaît ici comme déjà validé, avec une référence explicite au premier contrôleur ayant effectué la validation. Deux validations distinctes sont cependant représentées, ce qui permet d’illustrer une situation potentiellement conflictuelle dans laquelle plusieurs opérations de contrôle concernent le même billet. Cette représentation est utile pour matérialiser les cas où le système doit détecter une seconde tentative de validation et préserver la cohérence de l’état global du billet.
+
 ![Diagramme](images/conception/diagram_object_double-scan.svg)
