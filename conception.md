@@ -2,6 +2,54 @@
 
 **Auteurs (trices) :** Illia VLASENKO - Van Trang DANG - William PLEYERS
 
+## Contenus
+
+- [1. Introduction](#1-introduction)
+- [2. Technologie cible et principes de conception](#2-technologie-cible-et-principes-de-conception)
+  - [2.1. Choix de la technologie cible](#21-choix-de-la-technologie-cible)
+  - [2.2. Architecture logicielle](#22-architecture-logicielle)
+  - [2.3. Principes de conception](#23-principes-de-conception)
+- [3. Acteurs d’implémentation du système](#3-acteurs-dimplémentation-du-système)
+  - [3.1. Web App](#31-web-app)
+  - [3.2. Mobile App](#32-mobile-app)
+  - [3.3. Controller Terminal](#33-controller-terminal)
+  - [3.4. API REST](#34-api-rest)
+  - [3.5. Notification Service](#35-notification-service)
+  - [3.6. Validation Service](#36-validation-service)
+  - [3.7. Ticket Service](#37-ticket-service)
+  - [3.8. Auth Service](#38-auth-service)
+  - [3.9. PostgreSQL DB](#39-postgresql-db)
+  - [3.10. Local Storage](#310-local-storage)
+  - [3.11. Analyse globale des interactions](#311-analyse-globale-des-interactions)
+- [4. Architecture générale du système](#4-architecture-générale-du-système)
+  - [4.1. Diagramme d’architecture](#41-diagramme-darchitecture)
+  - [4.2. Diagramme de déploiement](#42-diagramme-de-déploiement)
+  - [4.3. Processus internes](#43-processus-internes)
+- [5. Interface utilisateur – GUI Mockups](#5-interface-utilisateur--gui-mockups)
+  - [5.1. Écran d’accueil](#51-écran-daccueil)
+  - [5.2. Écran de recherche de trajets](#52-écran-de-recherche-de-trajets)
+  - [5.3. Écran de détail de réservation](#53-écran-de-détail-de-réservation)
+  - [5.4. Écran de confirmation du billet](#54-écran-de-confirmation-du-billet)
+  - [5.5. Écran d’affichage du billet](#55-écran-daffichage-du-billet)
+  - [5.6. Écran de scan / contrôle](#56-écran-de-scan--contrôle)
+  - [5.7. Écran de validation réussie](#57-écran-de-validation-réussie)
+  - [5.8. Écran de billet invalide](#58-écran-de-billet-invalide)
+- [6. Modèle statique - Diagramme de classes](#6-modèle-statique---diagramme-de-classes)
+- [7. Scénarios d’utilisation détaillés](#7-scénarios-dutilisation-détaillés)
+  - [7.1 Achat d'un Ticket](#71-achat-dun-ticket)
+  - [7.2 Validation d'un Ticket](#72-validation-dun-ticket)
+  - [7.3 Gestion Offline](#73-gestion-offline)
+  - [7.4. Synchronisation après Offline](#74-synchronisation-après-offline)
+  - [7.5. Expiration d'un Ticket](#75-expiration-dun-ticket)
+  - [7.6. Gestion de Double Scan](#76-gestion-de-double-scan)
+  - [7.7. Gestion de Connexion](#77-gestion-de-connexion)
+- [8. Diagrammes d'Objet pour données critiques](#8-diagrammes-dobjet-pour-données-critiques)
+  - [8.1. Diagramme d'Objet Gestion de Validation](#81-diagramme-dobjet-gestion-de-validation)
+  - [8.2. Diagramme d'Objet Pré-validation](#82-diagramme-dobjet-pré-validation)
+  - [8.3 Diagramme d'Objet Double Vérification](#83-diagramme-dobjet-double-vérification)
+
+  
+<div style="page-break-after: always;"></div>
 
 ## 1. Introduction 
 Ce document présente la conception détaillée d’un système de gestion de la billetterie d’un réseau ferroviaire. Il s’inscrit dans la continuité de l’analyse fonctionnelle réalisée en phase D1, dont l’objectif principal était d’identifier les besoins métier, les contraintes du domaine ainsi que les principaux scénarios d’utilisation du système.
@@ -265,6 +313,90 @@ Le second diagramme d’activité représente le processus interne de validation
 ![Diagramme](images/conception/diagram_activity_validation.svg)
 
 ## 5. Interface utilisateur – GUI Mockups
+
+Cette section présente les principales maquettes d’interface du système Tou-Tou. Elles permettent d’illustrer concrètement l’expérience utilisateur côté voyageur ainsi que certaines interfaces liées au contrôle des billets. L’objectif n’est pas de figer un design final, mais de montrer la structure générale des écrans, les informations affichées et les principales actions offertes à l’utilisateur.
+
+### 5.1. Écran d’accueil
+
+Cet écran constitue le point d’entrée principal de l’application. Il permet à l’utilisateur de lancer rapidement une recherche de trajet grâce à un formulaire simple intégrant les gares de départ et d’arrivée, les dates et le nombre de passagers.
+
+![Écran d’accueil](images/ui/accueil.png)
+
+### 5.2. Écran de recherche de trajets
+
+Cet écran affiche les résultats de recherche sous forme de liste de trains disponibles, avec les horaires, les gares correspondantes et le prix associé à chaque trajet. Il permet à l’utilisateur de comparer plusieurs options puis de sélectionner celle qu’il souhaite acheter.
+
+![Écran de recherche](images/ui/recherche.png)
+
+### 5.3. Écran de détail de réservation
+
+Cet écran permet de compléter les informations nécessaires avant le paiement. Il regroupe à la fois les données du voyageur, les coordonnées de contact et un résumé du billet sélectionné, afin de sécuriser la confirmation de la réservation.
+
+![Écran de détail](images/ui/detail.png)
+
+### 5.4. Écran de confirmation du billet
+
+Cette interface apparaît après la réussite de l’achat. Elle confirme à l’utilisateur que la réservation a bien été enregistrée et affiche les informations essentielles du billet, y compris le QR code, les détails du trajet et les actions possibles comme l’impression ou le téléchargement.
+
+![Écran de confirmation](images/ui/validated.png)
+
+### 5.5. à 5.8. Interfaces de consultation et de contrôle
+
+Les écrans suivants correspondent aux interfaces les plus directement liées à l’utilisation concrète du billet par le voyageur et par le contrôleur. Ils illustrent la consultation du QR code, le processus de scan ainsi que les deux principaux résultats possibles d’un contrôle : validation réussie ou billet invalide.
+
+<table>
+  <tr>
+    <td width="35%" align="center">
+      <img src="images/ui/show.png" alt="Écran d’affichage du billet" width="260"/>
+    </td>
+    <td width="15%"></td>
+    <td width="35%" align="center">
+      <img src="images/ui/scan.png" alt="Écran de scan / contrôle" width="260"/>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>5.5. Écran d’affichage du billet</h4>
+      <p>
+        Cet écran est destiné à la consultation rapide d’un billet déjà émis. Il met principalement en avant le QR code, qui constitue l’élément central lors du contrôle, ainsi que des actions simples liées à la sauvegarde ou à la gestion locale du billet.
+      </p>
+    </td>
+    <td></td>
+    <td valign="top">
+      <h4>5.6. Écran de scan / contrôle</h4>
+      <p>
+        Cette interface correspond au terminal utilisé par le contrôleur pour scanner un QR code. Elle montre la zone de capture visuelle et illustre la manière dont le système lit un billet présenté par le voyageur afin de déclencher ensuite le processus de validation.
+      </p>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="35%" align="center">
+      <img src="images/ui/verified.png" alt="Écran de validation réussie" width="260"/>
+    </td>
+    <td width="15%"></td>
+    <td width="35%" align="center">
+      <img src="images/ui/invalid.png" alt="Écran de billet invalide" width="260"/>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>5.7. Écran de validation réussie</h4>
+      <p>
+        Cet écran présente le résultat d’un contrôle positif. Il indique de façon explicite que le ticket a été reconnu comme valide et affiche les principales informations utiles au contrôleur, comme l’identifiant du pass, l’identifiant du train, la date de validité et le tarif.
+      </p>
+    </td>
+    <td></td>
+    <td valign="top">
+      <h4>5.8. Écran de billet invalide</h4>
+      <p>
+        Cette interface illustre le cas où le billet ne peut pas être accepté par le système. Elle permet d’informer clairement l’utilisateur ou le contrôleur qu’un problème a été détecté, tout en proposant des actions simples comme réessayer l’opération ou reporter le cas.
+      </p>
+    </td>
+  </tr>
+</table>
 
 ## 6. Modèle statique - Diagramme de classes
 Le diagramme de classes présente une architecture organisée en plusieurs couches, permettant de structurer clairement les responsabilités du système.
