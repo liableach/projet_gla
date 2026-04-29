@@ -6,15 +6,11 @@ import java.util.Date;
 import java.util.UUID;
 import utilities.QR;
 public class Main {
-	public static void testDB() {
+	public static void main(String[] args) {
 		try (Connection conn = DBConnection.getConnection()) {
 			System.out.println("✅ Connected to database!");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	public static void main(String[] args) {
-		QR.saveQR(UUID.randomUUID(), "test_qr.png");
-		System.out.println("QR généré !");
 	}
 }

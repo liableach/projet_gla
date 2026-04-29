@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Résultat de recherche - TouTou</title>
+    <link rel="stylesheet" href="recherche.css" />
+</head>
+<body>
+<div class="search-page">
+    <header class="topbar">
+        <a href="index.html" class="logo">
+            <img src="assets/logo.png" alt="TouTou Logo" />
+        </a>
+
+        <nav class="top-links">
+            <a href="#">Mes billets</a>
+            <a href="login.html" class="auth-link">Se connecter/S’inscrire</a>
+        </nav>
+    </header>
+
+    <main class="search-layout">
+        <section class="left-panel">
+            <h1>Résultat de recherche</h1>
+
+            <div class="mini-search">
+                <div class="mini-inputs">
+                    <input type="text" id="fromField" placeholder="NDLS , New Delhi Railway Station" />
+                    <input type="text" id="toField" placeholder="LJN, Lucknow Junction" />
+                </div>
+                <button>Chercher</button>
+            </div>
+
+            <div class="days-selector">
+                <button class="day-arrow">‹</button>
+
+                <div class="day">Tue<br><span>15</span></div>
+                <div class="day active">Wed<br><span>16</span></div>
+                <div class="day">Thu<br><span>17</span></div>
+                <div class="day">Fri<br><span>18</span></div>
+                <div class="day">Sat<br><span>19</span></div>
+                <div class="day">Sun<br><span>20</span></div>
+
+                <button class="day-arrow">›</button>
+            </div>
+        </section>
+
+        <section class="right-panel">
+            <div class="right-header">
+                <div>
+                    <h2>Trains disponibles</h2>
+                </div>
+                <span class="train-count">5 Trains disponibles</span>
+            </div>
+
+            <div class="trains-list">
+                <article class="train-card">
+                    <div class="train-info">
+                        <h3>12430 - Ndls Lko Ac Sf</h3>
+                        <div class="train-route">
+                            <div class="route-left">
+                                <strong>Nov 16</strong>
+                                <span>11:25 pm</span>
+                                <span>NDLS, New Delhi</span>
+                            </div>
+
+                            <div class="route-line"></div>
+
+                            <div class="route-right">
+                                <strong>Nov 17</strong>
+                                <span>7:25 am</span>
+                                <span>LKO, Lucknow</span>
+                            </div>
+                        </div>
+
+                        <div class="price-block">
+                            <span>Prix</span>
+                            <strong>$15</strong>
+                        </div>
+                    </div>
+
+                    <div class="train-action">
+                        <a href="detail.html" class="buy-btn">Acheter</a>
+                    </div>
+                </article>
+
+                <article class="train-card">
+                    <div class="train-info">
+                        <h3>12230 - Lucknow Mail</h3>
+                        <div class="train-route">
+                            <div class="route-left">
+                                <strong>Nov 16</strong>
+                                <span>11:25 pm</span>
+                                <span>NDLS, New Delhi</span>
+                            </div>
+
+                            <div class="route-line"></div>
+
+                            <div class="route-right">
+                                <strong>Nov 17</strong>
+                                <span>7:25 am</span>
+                                <span>LKO, Lucknow</span>
+                            </div>
+                        </div>
+
+                        <div class="price-block">
+                            <span>Prix</span>
+                            <strong>$20</strong>
+                        </div>
+                    </div>
+
+                    <div class="train-action">
+                        <a href="detail.html" class="buy-btn">Acheter</a>
+                    </div>
+                </article>
+
+                <article class="train-card">
+                    <div class="train-info">
+                        <h3>12230 - Lucknow Mail</h3>
+                        <div class="train-route">
+                            <div class="route-left">
+                                <strong>Nov 16</strong>
+                                <span>11:25 pm</span>
+                                <span>NDLS, New Delhi</span>
+                            </div>
+
+                            <div class="route-line"></div>
+
+                            <div class="route-right">
+                                <strong>Nov 17</strong>
+                                <span>7:25 am</span>
+                                <span>LKO, Lucknow</span>
+                            </div>
+                        </div>
+
+                        <div class="price-block">
+                            <span>Prix</span>
+                            <strong>$45</strong>
+                        </div>
+                    </div>
+
+                    <div class="train-action">
+                        <a href="detail.html" class="buy-btn">Acheter</a>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const from = params.get("from");
+    const to = params.get("to");
+
+    if (from) {
+        document.getElementById("fromField").value = from;
+    }
+    if (to) {
+        document.getElementById("toField").value = to;
+    }
+</script>
+</body>
+</html>
