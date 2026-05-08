@@ -1,6 +1,13 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+DROP TABLE IF EXISTS tickets;
+DROP TABLE IF EXISTS users;
+
 CREATE TABLE users (
     id UUID PRIMARY KEY,
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL
 );
 
 CREATE TABLE tickets (

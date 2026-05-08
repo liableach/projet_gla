@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TouTou - Accueil</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page">
+    <div class="overlay"></div>
+
+    <header class="navbar">
+        <div class="logo">
+            <img src="assets/logo.png" alt="TouTou Logo" />
+        </div>
+
+        <nav class="menu">
+            <a href="#">ACCUEIL</a>
+            <a href="#" class="active">MES BILLETS</a>
+            <a href="login.html" class="user-avatar">
+                <img src="assets/client.png" alt="Profil utilisateur" />
+            </a>
+        </nav>
+    </header>
+
+    <main class="hero">
+        <section class="hero-text">
+            <h1>
+                <span class="small-title">Stop looking,</span><br />
+                <span class="big-title">Start booking !</span>
+            </h1>
+
+            <p>
+                Explorez notre site de réservation de billets de train captivant,
+                où chaque clic vous transporte vers une aventure ferroviaire inoubliable.
+            </p>
+
+            <form class="search-card" action="recherche.html" method="get">
+                <h2>Chercher votre trajet</h2>
+
+                <div class="row row-top">
+                    <input type="text" name="from" placeholder="De:" />
+                    <input type="text" name="to" placeholder="À:" />
+                </div>
+
+                <div class="row row-bottom">
+                    <div class="field-group">
+                        <label>Date de départ:</label>
+                        <input type="text" name="depart" placeholder="Aujourd'hui..." />
+                    </div>
+
+                    <div class="field-group">
+                        <label>Date de retour:</label>
+                        <input type="text" name="retour" placeholder="Choisir une date..." />
+                    </div>
+
+                    <div class="field-group small">
+                        <label>Passengers:</label>
+                        <input type="number" name="passengers" value="1" min="1" />
+                    </div>
+                </div>
+
+                <div class="search-btn-wrapper">
+                    <button type="submit">Chercher</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+</body>
+</html>

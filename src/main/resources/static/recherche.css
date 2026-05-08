@@ -1,0 +1,281 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+html, body {
+    width: 100%;
+    min-height: 100%;
+    background: #f7f7f7;
+    color: #222;
+}
+
+.search-page {
+    width: 100%;
+    min-height: 100vh;
+    background: #fafafa;
+}
+
+.topbar {
+    width: 100%;
+    height: 110px;
+    padding: 0 65px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ddd;
+    background: #fff;
+}
+
+.logo img {
+    height: 58px;
+    object-fit: contain;
+}
+
+.top-links {
+    display: flex;
+    align-items: center;
+    gap: 34px;
+}
+
+.top-links a {
+    text-decoration: none;
+    color: #222;
+    font-size: 0.95rem;
+}
+
+.top-links .auth-link {
+    color: #1bb7e8;
+    font-weight: 600;
+}
+
+.search-layout {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 80px;
+    padding: 34px 65px 40px 65px;
+}
+
+.left-panel h1 {
+    color: #1bb7e8;
+    font-size: 2rem;
+    margin-bottom: 42px;
+}
+
+.mini-search {
+    margin-bottom: 50px;
+}
+
+.mini-inputs {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.mini-inputs input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px solid #ccc;
+    background: transparent;
+    padding: 12px 0;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.mini-search button {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    background: #8dd8ee;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.days-selector {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 35px;
+}
+
+.day-arrow {
+    border: none;
+    background: transparent;
+    font-size: 2rem;
+    color: #2a85ff;
+    cursor: pointer;
+}
+
+.day {
+    text-align: center;
+    font-size: 1.3rem;
+    color: #222;
+    padding: 8px 10px;
+    min-width: 54px;
+    line-height: 1.2;
+}
+
+.day span {
+    font-size: 1.2rem;
+}
+
+.day.active {
+    background: #22bae9;
+    color: white;
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.right-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid #d9d9d9;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+}
+
+.right-header h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+}
+
+.train-count {
+    color: #888;
+    font-size: 0.95rem;
+}
+
+.trains-list {
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+    max-height: 74vh;
+    overflow-y: auto;
+    padding-right: 12px;
+}
+
+.trains-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.trains-list::-webkit-scrollbar-thumb {
+    background: #3d9cff;
+    border-radius: 20px;
+}
+
+.train-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+    padding: 18px 10px 10px 10px;
+}
+
+.train-info {
+    flex: 1;
+}
+
+.train-info h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.train-route {
+    display: grid;
+    grid-template-columns: 150px 1fr 150px;
+    align-items: center;
+    gap: 20px;
+}
+
+.route-left,
+.route-right {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.95rem;
+}
+
+.route-line {
+    height: 2px;
+    background: #bfbfbf;
+    position: relative;
+}
+
+.route-line::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: #9d9d9d;
+    border-radius: 50%;
+    position: absolute;
+    left: 0;
+    top: -3px;
+}
+
+.route-line::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: #9d9d9d;
+    border-radius: 50%;
+    position: absolute;
+    right: 0;
+    top: -3px;
+}
+
+.price-block {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.price-block span {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.price-block strong {
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+.train-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 150px;
+}
+
+.buy-btn {
+    display: inline-block;
+    text-decoration: none;
+    background: #8dd8ee;
+    color: white;
+    padding: 16px 34px;
+    border-radius: 12px;
+    font-size: 1rem;
+    text-align: center;
+    min-width: 130px;
+}
+
+.buy-btn:hover {
+    background: #67cbe8;
+}
+
+@media (max-width: 1200px) {
+    .search-layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .trains-list {
+        max-height: none;
+        overflow: visible;
+    }
+}

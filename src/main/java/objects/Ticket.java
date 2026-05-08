@@ -5,6 +5,7 @@ import java.util.UUID;
 public class Ticket {
     private UUID id_t;
     private UUID id_u;
+    private TicketState state;
     private String departure;
     private String destination;
     private int price;
@@ -19,6 +20,7 @@ public class Ticket {
     public Ticket(String departure, String destination, int price, UUID id_t, UUID id_u, Date date_departure, Date date_arrival){
         this.departure = departure;
         this.destination = destination;
+        this.state = TicketState.CREATED;
         this.price = price;
         this.id_t = id_t;
         this.id_u = id_u;

@@ -13,8 +13,4 @@ public class Control {
     public static boolean validateTicket(Ticket t, UUID c){
         return ValidationService.validateTicket(t, c);
     }
-
-    public static User addUser(String name, UUID id){
-        return AddUser.addUser(name, id);
-    }
 }
