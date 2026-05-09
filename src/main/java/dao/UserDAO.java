@@ -5,9 +5,11 @@ import objects.User;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class UserDAO {
-    public static void createUser(String name, String email, String hashedPassword) {
+    public void createUser(String name, String email, String hashedPassword) {
         String sql = "INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -21,7 +23,7 @@ public class UserDAO {
             e.printStackTrace();
         }
     }
-    public static User findByEmail(String email) {
+    public User findByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

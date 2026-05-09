@@ -1,5 +1,7 @@
 package api;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import services.AuthentificationService;
 
@@ -14,17 +16,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@RequestParam String name,
-                           @RequestParam String email,
-                           @RequestParam String password) {
-        authService.register(name, email, password);
-        return "user registered";
-    }
+    public ResponseEntity<String> register(@RequestParam String name, @RequestParam String email, @RequestParam String password) {
+    authService.register(name, email, password);
+    return ResponseEntity.ok("user registered");
+}
 
     @PostMapping("/login")
-    public String login(@RequestParam String email,
-                        @RequestParam String password) {
-        boolean ok = authService.login(email, password);
-        return ok ? "login success" : "login failed";
-    }
+    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password) {
+    boolean ok = authService.login(email, password);
+    if (ok) { return ResponseEntity.ok("login success"); }
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("login failed");
+}
 }
