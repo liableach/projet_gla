@@ -1,17 +1,47 @@
 package services;
-import objects.*;
-import java.util.Date;
-import java.util.UUID;
-import dao.TicketDAO;
 
+import java.io.File;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import dao.TicketDAO;
+import objects.Ticket;
+import objects.TicketState;
+import objects.Trip;
+import utilities.QR;
+
+@Service
 public class TicketService {
-    public static Ticket buyTicket(String dep, String dest, int price, UUID id_u, Date d_dep, Date d_dest){
-        Ticket t = new Ticket(dep, dest, price, java.util.UUID.randomUUID(), id_u,d_dep, d_dest);
-            
-        // Save the ticket to the database
-        TicketDAO tt = new TicketDAO();
-        tt.save(t);
+    @Autowired
+    private TicketDAO ticketDAO;
+    @Autowired
+    private EmailService emailService;
+    public Ticket buyTicket(UUID userId, Trip trip, String email) {
+        if (trip == null) { throw new IllegalArgumentException("Trip does not exist"); }
+        Ticket t = new Ticket(
+            UUID.randomUUID(),
+            userId,
+            trip.getDeparture(),
+            trip.getDestination(),
+            trip.getPrice(),
+            trip.getDepartureTime(),
+            trip.getArrivalTime(),
+            TicketState.PAID,
+            new Date(trip.getArrivalTime().getTime() + 600),
+            null,
+            null
+        );
+	    ticketDAO.save(t);
+        String path = System.getProperty("user.dir") + "/qrs/" + t.getId_t() + ".png";
+        QR.saveQR(t.getId_t(), path);
+        File qrFile = new File("qrs/" + t.getId_t() + ".png");
+        emailService.sendTicketQR(email, qrFile, t.getId_t().toString());
 
         return t;
+    }
+    public List<Ticket> getUserTickets(UUID userId) {
+        return ticketDAO.findByUserId(userId);
     }
 }

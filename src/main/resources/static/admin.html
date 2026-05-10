@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+<div class="page">
+
+    <h1>Admin Panel</h1>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody id="usersTable">
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+async function loadUsers() {
+
+    const response = await fetch('/admin/users');
+
+    if (response.status === 401) {
+        alert('Not logged in');
+        return;
+    }
+
+    if (response.status === 403) {
+        alert('Access denied');
+        return;
+    }
+
+    const users = await response.json();
+
+    const table = document.getElementById('usersTable');
+
+    table.innerHTML = '';
+
+    users.forEach(user => {
+
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+
+            <td>
+                <select id="role-${user.id}">
+                    <option value="USER"
+                        ${user.role === 'USER' ? 'selected' : ''}>
+                        USER
+                    </option>
+
+                    <option value="CONDUCTOR"
+                        ${user.role === 'CONDUCTOR' ? 'selected' : ''}>
+                        CONDUCTOR
+                    </option>
+
+                    <option value="ADMIN"
+                        ${user.role === 'ADMIN' ? 'selected' : ''}>
+                        ADMIN
+                    </option>
+                </select>
+            </td>
+
+            <td>
+                <button onclick="updateRole('${user.id}')">
+                    Update
+                </button>
+            </td>
+        `;
+
+        table.appendChild(row);
+    });
+}
+
+async function updateRole(userId) {
+
+    const roleSelect =
+        document.getElementById(`role-${userId}`);
+
+    const role = roleSelect.value;
+
+    const response = await fetch(
+        `/admin/role?userId=${userId}&role=${role}`,
+        {
+            method: 'POST'
+        }
+    );
+
+    const result = await response.text();
+
+    alert(result);
+}
+
+loadUsers();
+
+</script>
+
+</body>
+</html>
