@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import services.TicketService;
 import services.TripService;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,14 +24,14 @@ public class TicketController {
     private TripService tripService;
 
     @PostMapping("/buy")
-    public ResponseEntity<?> buyTicket(@RequestParam UUID tripId, @RequestParam String email, HttpSession session) {
+    public ResponseEntity<?> buyTicket(@RequestParam UUID tripId, HttpSession session) {
         Trip trip = tripService.findById(tripId);
         User user = (User) session.getAttribute("user");
 
         if (trip == null) { return ResponseEntity.status(404).body("Trip not found"); }
         if (user == null) { return ResponseEntity.status(401).body("Not logged in"); }
 
-        Ticket ticket = ticketService.buyTicket(user.getId(), trip, email);
+        Ticket ticket = ticketService.buyTicket(user.getId(), trip, user.getEmail());
 
         return ResponseEntity.ok(ticket);
     }

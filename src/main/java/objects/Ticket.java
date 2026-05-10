@@ -55,7 +55,11 @@ public class Ticket {
                 && now.before(expiration_date)
                 && !now.before(date_departure);
     }
-
+    public String getStatus() {
+        if (state == TicketState.VALIDATED)return "Validated by " + validatedBy + " at " + validated_at;
+        if (isValid()) return "Valid";
+        return "Invalid";
+}
     public boolean isValidated() {
         return state == TicketState.VALIDATED;
     }

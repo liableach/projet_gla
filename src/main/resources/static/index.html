@@ -14,14 +14,34 @@
         <div class="logo">
             <img src="assets/logo.png" alt="TouTou Logo" />
         </div>
+        <nav class="menu" id="navbarMenu">
 
-        <nav class="menu">
-            <a href="#">ACCUEIL</a>
-            <a href="#" class="active">MES BILLETS</a>
-            <a href="login.html" class="user-avatar">
-                <img src="assets/client.png" alt="Profil utilisateur" />
-            </a>
-        </nav>
+    <a href="index.html">ACCUEIL</a>
+
+    <a href="mytickets.html">
+        MES BILLETS
+    </a>
+
+    <a href="scanner.html"
+       id="scannerLink"
+       style="display:none;">
+       SCANNER
+    </a>
+
+    <a href="admin.html"
+       id="adminLink"
+       style="display:none;">
+       ADMIN
+    </a>
+
+    <a href="login.html"
+       id="loginLink"
+       class="user-avatar">
+
+        <img src="assets/client.png" alt="Profil utilisateur" />
+    </a>
+
+</nav>
     </header>
 
     <main class="hero">
@@ -68,5 +88,41 @@
         </section>
     </main>
 </div>
+        <script>
+
+async function loadNavbar() {
+
+    try {
+
+        const response = await fetch("/me");
+
+        if (!response.ok) return;
+
+        const user = await response.json();
+
+        if (user.role === "CONDUCTOR" ||
+            user.role === "ADMIN") {
+
+            document
+                .getElementById("scannerLink")
+                .style.display = "inline-block";
+        }
+
+        if (user.role === "ADMIN") {
+
+            document
+                .getElementById("adminLink")
+                .style.display = "inline-block";
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+loadNavbar();
+
+</script>
+<script src="app.js"></script>
 </body>
 </html>

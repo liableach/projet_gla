@@ -29,7 +29,7 @@ public class TicketService {
             trip.getDepartureTime(),
             trip.getArrivalTime(),
             TicketState.PAID,
-            new Date(trip.getArrivalTime().getTime() + 600),
+            new Date(trip.getArrivalTime().getTime() + 600_000),
             null,
             null
         );

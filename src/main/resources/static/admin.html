@@ -28,7 +28,23 @@
         </tbody>
 
     </table>
+    <h2>Create Trip</h2>
 
+    <div style="margin-bottom:20px; display:flex; flex-direction:column; gap:10px; max-width:400px;">
+
+    <input id="departure" placeholder="Departure">
+    <input id="destination" placeholder="Destination">
+    <input id="price" type="number" placeholder="Price">
+
+    <label>Departure time</label>
+    <input id="departureTime" type="datetime-local">
+
+    <label>Arrival time</label>
+    <input id="arrivalTime" type="datetime-local">
+
+    <button onclick="createTrip()">Create Trip</button>
+
+</div>
 </div>
 
 <script>
@@ -111,8 +127,33 @@ async function updateRole(userId) {
 }
 
 loadUsers();
+async function createTrip() {
 
+    const trip = {
+        departure: document.getElementById("departure").value,
+        destination: document.getElementById("destination").value,
+        price: parseInt(document.getElementById("price").value),
+
+        departureTime: new Date(document.getElementById("departureTime").value).getTime(),
+        arrivalTime: new Date(document.getElementById("arrivalTime").value).getTime()
+    };
+
+    const res = await fetch("/trips/create", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(trip)
+    });
+
+    if (res.ok) {
+        alert("Trip created successfully");
+        location.reload(); // refresh table if you want
+    } else {
+        alert("Failed to create trip");
+    }
+}
 </script>
-
+<script src="app.js"></script>
 </body>
 </html>

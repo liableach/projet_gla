@@ -17,10 +17,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestParam String name, @RequestParam String email, @RequestParam String password) {
-    authService.register(name, email, password);
-    return ResponseEntity.ok("user registered");
-}
-
+        authService.register(name, email, password);
+        return ResponseEntity.ok("user registered");
+    }
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password, HttpSession session) {
         User user = authService.login(email, password);

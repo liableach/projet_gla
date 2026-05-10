@@ -2,7 +2,11 @@ package api;
 
 import jakarta.servlet.http.HttpSession;
 import objects.Role;
+import objects.Ticket;
+import objects.TicketState;
 import objects.User;
+import objects.ValidationResult;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import services.ValidationService;
@@ -17,41 +21,43 @@ public class ScanController {
     public ScanController(ValidationService validationService) {
         this.validationService = validationService;
     }
-
     @PostMapping("/scan")
-    public ResponseEntity<String> scan(
-            @RequestParam UUID ticketId,
-            HttpSession session
-    ) {
+    public ResponseEntity<?> scan(@RequestParam UUID ticketId, HttpSession session) {
 
-        User user = (User) session.getAttribute("user");
+    User user = (User) session.getAttribute("user");
 
-        if (user == null) {
-            return ResponseEntity
-                    .status(401)
-                    .body("NOT LOGGED IN");
-        }
-
-        if (user.getRole() != Role.CONDUCTOR &&
-            user.getRole() != Role.ADMIN) {
-
-            return ResponseEntity
-                    .status(403)
-                    .body("FORBIDDEN");
-        }
-
-        boolean success =
-                validationService.validateTicket(
-                        ticketId,
-                        user.getId()
-                );
-
-        if (!success) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("INVALID TICKET");
-        }
-
-        return ResponseEntity.ok("VALID");
+    if (user == null) {
+        return ResponseEntity.status(401).body("NOT LOGGED IN");
     }
+
+    if (user.getRole() != Role.CONDUCTOR &&
+        user.getRole() != Role.ADMIN) {
+        return ResponseEntity.status(403).body("FORBIDDEN");
+    }
+
+    ValidationResult result =
+            validationService.validateTicket(ticketId, user.getId());
+
+    Ticket ticket = validationService.getTicket(ticketId);
+
+    return switch (result) {
+
+        case VALID -> ResponseEntity.ok(
+                "Validated by " +
+                ticket.getValidatedBy() +
+                " at " +
+                ticket.getValidatedAtDate()
+        );
+
+        case ALREADY_VALIDATED -> ResponseEntity.ok(
+                "Validated by " +
+                ticket.getValidatedBy() +
+                " at " +
+                ticket.getValidatedAtDate()
+        );
+
+        default -> ResponseEntity.badRequest().body("INVALID TICKET");
+    };
 }
+}
+

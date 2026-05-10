@@ -53,6 +53,8 @@ public class TicketDAO {
             var rs = stmt.executeQuery();
             while (rs.next()) {
 
+                Object vb = rs.getObject("validated_by");
+                UUID validatedBy = vb != null ? (UUID) vb : null;
     Ticket ticket = new Ticket(
             (UUID) rs.getObject("id_t"),
             (UUID) rs.getObject("id_u"),
@@ -63,7 +65,7 @@ public class TicketDAO {
             rs.getTimestamp("date_arrival"),
             TicketState.valueOf(rs.getString("state")),
             rs.getTimestamp("expiration_date"),
-            (UUID) rs.getObject("validated_by"),
+            validatedBy,
             rs.getTimestamp("validated_at")
     );
 
@@ -87,6 +89,8 @@ public class TicketDAO {
 
         if (rs.next()) {
 
+                Object vb = rs.getObject("validated_by");
+                UUID validatedBy = vb != null ? (UUID) vb : null;
             return new Ticket(
                     (UUID) rs.getObject("id_t"),
                     (UUID) rs.getObject("id_u"),
@@ -97,7 +101,7 @@ public class TicketDAO {
                     rs.getTimestamp("date_arrival"),
                     TicketState.valueOf(rs.getString("state")),
                     rs.getTimestamp("expiration_date"),
-                    (UUID) rs.getObject("validated_by"),
+                    validatedBy,
                     rs.getTimestamp("validated_at")
             );
         }
