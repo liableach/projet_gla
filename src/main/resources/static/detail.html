@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Détail de la réservation - TouTou</title>
+    <link rel="stylesheet" href="detail.css" />
+</head>
+<body>
+<div class="detail-page">
+    <header class="topbar">
+        <a href="index.html" class="logo">
+            <img src="assets/logo.png" alt="TouTou Logo" />
+        </a>
+
+        <nav class="top-links">
+            <a href="#">Mes billets</a>
+            <a href="login.html" class="auth-link">Se connecter/S’inscrire</a>
+        </nav>
+    </header>
+
+    <main class="detail-layout">
+        <h1>Détail de la réservation</h1>
+
+        <div class="content-grid">
+            <!-- LEFT -->
+            <section class="left-column">
+                <div class="card client-card">
+                    <div class="card-header">
+                        <h2>Détails du client</h2>
+                        <button class="icon-btn add-btn">+</button>
+                    </div>
+
+                    <div class="traveller-row">
+                        <span class="traveller-index">1.</span>
+                        <span class="traveller-name">John Woodspear</span>
+
+                        <div class="traveller-actions">
+                            <button class="icon-btn edit-btn">✎</button>
+                            <button class="icon-btn delete-btn">🗑</button>
+                        </div>
+                    </div>
+
+                    <div class="form-block">
+                        <h3>Détails</h3>
+
+                        <div class="form-grid">
+                            <input type="text" placeholder="Nom" />
+                            <input type="number" placeholder="Age" />
+                            <select>
+                                <option>Sexe</option>
+                                <option>Femme</option>
+                                <option>Homme</option>
+                            </select>
+
+                            <input type="text" placeholder="Nationalité" />
+                            <div class="date-field">
+                                <label for="birthdate">Date de naissance</label>
+                                <input type="date" id="birthdate" name="birthdate" />
+                            </div>
+                            <select>
+                                <option>Choisir</option>
+                                <option>Adulte</option>
+                                <option>Enfant</option>
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="save-btn">Enregistrer</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card contact-card">
+                    <h2>Contact</h2>
+
+                    <div class="contact-grid">
+                        <input type="text" placeholder="Numéro de téléphone" />
+                        <input type="email" placeholder="Email" />
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT -->
+            <section class="right-column">
+                <div class="ticket-summary">
+                    <div class="summary-header">
+                        <h2>Détail du ticket</h2>
+                        <span class="rank">Rang 2A</span>
+                    </div>
+
+                    <h3>12430 - NDLS LKO AC SF</h3>
+
+                    <div class="route-block">
+                        <div class="route-left">
+                            <strong>Nov 16</strong>
+                            <span>11:25 pm</span>
+                            <span>NDLS, New Delhi</span>
+                        </div>
+
+                        <div class="route-line"></div>
+
+                        <div class="route-right">
+                            <strong>Nov 17</strong>
+                            <span>7:25 am</span>
+                            <span>LKO, Lucknow</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card price-card">
+                    <h2>Détails</h2>
+
+                    <div class="price-row">
+                        <span>Prix</span>
+                        <span>$1000.00</span>
+                    </div>
+
+                    <div class="price-row">
+                        <span>Nombre de personnes</span>
+                        <span>3</span>
+                    </div>
+
+                    <div class="price-row">
+                        <span>Fee</span>
+                        <span>$500.00</span>
+                    </div>
+
+                    <div class="price-total">
+                        <span>Total</span>
+                        <strong>$3500.00</strong>
+                    </div>
+                </div>
+
+                <button class="pay-btn" onclick="window.location.href='validated.html'">
+                    Payer
+                </button>
+
+                <a href="recherche.html" class="cancel-link">Abandonner</a>
+            </section>
+        </div>
+    </main>
+</div>
+</body>
+</html>

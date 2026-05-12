@@ -1,0 +1,349 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Segoe UI", sans-serif;
+}
+
+html, body {
+    width: 100%;
+    min-height: 100%;
+    background: #f8f8f8;
+    color: #222;
+}
+
+.detail-page {
+    width: 100%;
+    min-height: 100vh;
+    background: #fafafa;
+}
+
+.topbar {
+    width: 100%;
+    height: 95px;
+    padding: 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ddd;
+    background: #fff;
+}
+
+.logo img {
+    height: 56px;
+    object-fit: contain;
+}
+
+.top-links {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+}
+
+.top-links a {
+    text-decoration: none;
+    color: #222;
+    font-size: 0.92rem;
+}
+
+.top-links .auth-link {
+    color: #1db7e9;
+    font-weight: 600;
+}
+
+.detail-layout {
+    padding: 26px 38px 36px 38px;
+}
+
+.detail-layout h1 {
+    color: #21bce8;
+    font-size: 2rem;
+    margin-bottom: 28px;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.9fr;
+    gap: 36px;
+    align-items: start;
+}
+
+.left-column,
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 24px 22px;
+}
+
+.card h2 {
+    font-size: 1.4rem;
+    margin-bottom: 18px;
+}
+
+.client-card {
+    min-height: 370px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.card-header h2 {
+    margin-bottom: 0;
+}
+
+.icon-btn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.add-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #7dd2eb;
+    color: white;
+    font-weight: bold;
+}
+
+.traveller-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #edf7fc;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 28px;
+}
+
+.traveller-index {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.traveller-name {
+    flex: 1;
+    font-size: 1rem;
+}
+
+.traveller-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.edit-btn {
+    color: #2e8cff;
+}
+
+.delete-btn {
+    color: #ff7f7f;
+}
+
+.form-block h3 {
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 14px;
+}
+
+.form-grid input,
+.form-grid select,
+.contact-grid input {
+    border: none;
+    border-bottom: 1px solid #ccc;
+    padding: 12px 6px;
+    font-size: 0.95rem;
+    outline: none;
+    background: transparent;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 18px;
+}
+
+.save-btn {
+    border: none;
+    background: #5ec4e8;
+    color: white;
+    padding: 12px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.contact-card {
+    min-height: 150px;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.ticket-summary {
+    background: #eaf6ff;
+    border-radius: 10px;
+    padding: 24px 24px 22px 24px;
+}
+
+.summary-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.summary-header h2 {
+    margin-bottom: 0;
+    font-size: 1.35rem;
+}
+
+.rank {
+    color: #23b8ea;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.ticket-summary h3 {
+    font-size: 1.25rem;
+    margin-bottom: 22px;
+}
+
+.route-block {
+    display: grid;
+    grid-template-columns: 120px 1fr 120px;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.route-left,
+.route-right {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.93rem;
+}
+
+.route-line {
+    height: 2px;
+    background: #b8bcc0;
+    position: relative;
+}
+
+.route-line::before,
+.route-line::after {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #9da3a8;
+    position: absolute;
+    top: -2.5px;
+}
+
+.route-line::before {
+    left: 0;
+}
+
+.route-line::after {
+    right: 0;
+}
+
+.change-btn {
+    border: 1px solid #4dbdea;
+    background: transparent;
+    color: #4dbdea;
+    border-radius: 18px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.price-card {
+    min-height: 210px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    color: #666;
+    font-size: 0.96rem;
+}
+
+.price-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+    font-size: 1.15rem;
+}
+
+.price-total strong {
+    font-size: 1.8rem;
+}
+
+.pay-btn {
+    border: none;
+    width: 100%;
+    background: #7bd3eb;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.cancel-link {
+    text-align: center;
+    color: #ff6666;
+    text-decoration: none;
+    font-size: 0.95rem;
+    margin-top: 2px;
+}
+
+.cancel-link:hover {
+    text-decoration: underline;
+}
+input[type="date"] {
+    color: #666;
+}
+
+@media (max-width: 1150px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .route-block {
+        grid-template-columns: 1fr;
+    }
+}
