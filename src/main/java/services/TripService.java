@@ -17,11 +17,11 @@ public class TripService {
     public Trip findById(UUID id) {
         return tripDAO.findById(id);
     }
-    
+
     public List<Trip> search(String departure, String destination) {
         return tripDAO.search(departure, destination);
     }
-    
+
     public void createTrip(Trip trip) {
         tripDAO.createTrip(trip);
     }

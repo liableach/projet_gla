@@ -28,22 +28,27 @@ public class TicketController {
         Trip trip = tripService.findById(tripId);
         User user = (User) session.getAttribute("user");
 
-        if (trip == null) { return ResponseEntity.status(404).body("Trip not found"); }
-        if (user == null) { return ResponseEntity.status(401).body("Not logged in"); }
+        if (trip == null) {
+            return ResponseEntity.status(404).body("Trip not found");
+        }
+        if (user == null) {
+            return ResponseEntity.status(401).body("Not logged in");
+        }
 
         Ticket ticket = ticketService.buyTicket(user.getId(), trip, user.getEmail());
 
         return ResponseEntity.ok(ticket);
     }
+
     @GetMapping
-public ResponseEntity<?> getUserTickets(HttpSession session) {
+    public ResponseEntity<?> getUserTickets(HttpSession session) {
 
-    User user = (User) session.getAttribute("user");
+        User user = (User) session.getAttribute("user");
 
-    if (user == null) {
-        return ResponseEntity.status(401).body("Not logged in");
+        if (user == null) {
+            return ResponseEntity.status(401).body("Not logged in");
+        }
+
+        return ResponseEntity.ok(ticketService.getUserTickets(user.getId()));
     }
-
-    return ResponseEntity.ok(ticketService.getUserTickets(user.getId()));
-}
 }

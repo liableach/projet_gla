@@ -14,9 +14,15 @@ public class UserService {
 
     private final UserDAO userDAO;
 
-    public UserService(UserDAO userDAO) { this.userDAO = userDAO; }
+    public UserService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
 
-    public void changeRole(UUID userId, Role role) { userDAO.updateRole(userId, role); }
+    public void changeRole(UUID userId, Role role) {
+        userDAO.updateRole(userId, role);
+    }
 
-    public List<User> getAllUsers() { return userDAO.findAll(); }
+    public List<User> getAllUsers() {
+        return userDAO.findAll();
+    }
 }

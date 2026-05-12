@@ -5,6 +5,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import services.AuthentificationService;
 import jakarta.servlet.http.HttpSession;
+import objects.LoginRequest;
+import objects.RegisterRequest;
 import objects.User;
 
 @RestController
@@ -13,18 +15,29 @@ public class AuthController {
 
     private final AuthentificationService authService;
 
-    public AuthController(AuthentificationService authService) { this.authService = authService; }
+    public AuthController(AuthentificationService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestParam String name, @RequestParam String email, @RequestParam String password) {
-        authService.register(name, email, password);
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        authService.register(request.getName(), request.getEmail(), request.getPassword());
         return ResponseEntity.ok("user registered");
     }
+
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password, HttpSession session) {
-        User user = authService.login(email, password);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("login failed");
+    public ResponseEntity<String> login(@RequestBody LoginRequest request, HttpSession session) {
+
+        User user = authService.login(request.getEmail(), request.getPassword());
+
+        if (user == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("login failed");
+        }
+
         session.setAttribute("user", user);
+
         return ResponseEntity.ok("login success");
     }
 

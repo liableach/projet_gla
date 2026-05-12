@@ -1,4 +1,5 @@
 package services;
+
 import java.util.Date;
 import org.springframework.stereotype.Service;
 import dao.TripDAO;

@@ -9,19 +9,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
 
 public class QR {
 
-    public static void saveQR(UUID id, String filePath) {
+    public static void saveQR(String content, String filePath) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            BitMatrix bitMatrix = qrCodeWriter.encode(
-                    id.toString(),
-                    BarcodeFormat.QR_CODE,
-                    200,
-                    200
-            );
+            BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, 200, 200);
             Path path = Paths.get(filePath).toAbsolutePath();
             Files.createDirectories(path.getParent());
             MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);

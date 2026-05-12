@@ -19,10 +19,10 @@ public class TripController {
     @GetMapping("/search")
     public List<Trip> search(
             @RequestParam String from,
-            @RequestParam String to
-    ) {
+            @RequestParam String to) {
         return tripService.search(from, to);
     }
+
     @PostMapping("/create")
     public void create(@RequestBody Trip trip) {
         tripService.createTrip(trip);
