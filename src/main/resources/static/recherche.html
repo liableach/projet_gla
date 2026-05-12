@@ -8,7 +8,6 @@
 </head>
 
 <body>
-
 <div class="search-page">
 
     <header class="topbar">
@@ -28,7 +27,7 @@
                 ADMIN
             </a>
 
-            <a href="login.html" class="user-avatar">
+            <a href="login.html" class="user-avatar" id="loginLink">
                 <img src="assets/client.png" alt="Profil utilisateur" />
             </a>
         </nav>
@@ -40,24 +39,27 @@
             <h1>Résultat de recherche</h1>
 
             <div class="mini-search">
-                <div class="mini-inputs">
-                    <input type="text" id="fromField" placeholder="NDLS , New Delhi Railway Station" />
-                    <input type="text" id="toField" placeholder="LJN, Lucknow Junction" />
+                <div class="mini-inputs fixed-search-summary">
+                    <div class="summary-field">
+                        <span id="fromField">Ville de départ</span>
+                    </div>
+
+                    <div class="summary-field">
+                        <span id="toField">Ville d’arrivée</span>
+                    </div>
                 </div>
-                <button>Chercher</button>
+
+                <button id="searchAgainBtn">Chercher</button>
+            </div>
+
+            <div class="selected-date-label" id="selectedDateLabel">
+                Date sélectionnée : -
             </div>
 
             <div class="days-selector">
-                <button class="day-arrow">‹</button>
-
-                <div class="day">Tue<br><span>15</span></div>
-                <div class="day active">Wed<br><span>16</span></div>
-                <div class="day">Thu<br><span>17</span></div>
-                <div class="day">Fri<br><span>18</span></div>
-                <div class="day">Sat<br><span>19</span></div>
-                <div class="day">Sun<br><span>20</span></div>
-
-                <button class="day-arrow">›</button>
+                <button class="day-arrow" id="prevDaysBtn">‹</button>
+                <div id="daysContainer" class="days-container"></div>
+                <button class="day-arrow" id="nextDaysBtn">›</button>
             </div>
         </section>
 
@@ -76,100 +78,231 @@
 </div>
 
 <script>
+    const params = new URLSearchParams(window.location.search);
 
-const params = new URLSearchParams(window.location.search);
+    const from = params.get("from");
+    const to = params.get("to");
+    const selectedDateParam = params.get("date");
 
-const from = params.get("from");
-const to = params.get("to");
+    const fromField = document.getElementById("fromField");
+    const toField = document.getElementById("toField");
+    const selectedDateLabel = document.getElementById("selectedDateLabel");
+    const trainCount = document.querySelector(".train-count");
+    const tripsList = document.querySelector(".trains-list");
 
-document.getElementById("fromField").value = from || "";
-document.getElementById("toField").value = to || "";
+    fromField.textContent = from || "Ville de départ";
+    toField.textContent = to || "Ville d’arrivée";
 
-async function loadTrips() {
+    function parseSelectedDate(dateStr) {
+        if (!dateStr) return null;
 
-    if (!from || !to) return;
+        const parsed = new Date(dateStr);
+        if (isNaN(parsed.getTime())) return null;
 
-    const response = await fetch(`/trips/search?from=${from}&to=${to}`);
-    const trips = await response.json();
+        parsed.setHours(0, 0, 0, 0);
+        return parsed;
+    }
 
-    const list = document.querySelector(".trains-list");
-    list.innerHTML = "";
+    const selectedDate = parseSelectedDate(selectedDateParam) || (() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return today;
+    })();
 
-    document.querySelector(".train-count").innerText =
-        `${trips.length} trains disponibles`;
+    selectedDateLabel.textContent =
+        `Date sélectionnée : ${selectedDate.toLocaleDateString("fr-FR", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric"
+        })}`;
 
-    trips.forEach(trip => {
+    const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+    let dayOffset = -1;
 
-        const departureDate = new Date(trip.departureTime);
-        const arrivalDate = new Date(trip.arrivalTime);
+    function isSameDay(dateA, dateB) {
+        return dateA.getFullYear() === dateB.getFullYear()
+            && dateA.getMonth() === dateB.getMonth()
+            && dateA.getDate() === dateB.getDate();
+    }
 
-        const card = document.createElement("article");
-        card.className = "train-card";
+    function renderDays() {
+        const container = document.getElementById("daysContainer");
+        container.innerHTML = "";
 
-        card.innerHTML = `
-            <div class="train-info">
+        for (let i = 0; i < 6; i++) {
+            const current = new Date(selectedDate);
+            current.setDate(selectedDate.getDate() + dayOffset + i);
 
-                <h3>${trip.departure} → ${trip.destination}</h3>
+            const dayDiv = document.createElement("div");
+            dayDiv.className = "day";
 
-                <div class="train-route">
+            if (isSameDay(current, selectedDate)) {
+                dayDiv.classList.add("active");
+            }
 
-                    <div class="route-left">
-                        <strong>${departureDate.toLocaleDateString()}</strong>
-                        <span>${departureDate.toLocaleTimeString()}</span>
-                        <span>${trip.departure}</span>
-                    </div>
-
-                    <div class="route-line"></div>
-
-                    <div class="route-right">
-                        <strong>${arrivalDate.toLocaleDateString()}</strong>
-                        <span>${arrivalDate.toLocaleTimeString()}</span>
-                        <span>${trip.destination}</span>
-                    </div>
-
-                </div>
-
-                <div class="price-block">
-                    <span>Prix</span>
-                    <strong>${trip.price}€</strong>
-                </div>
-
-            </div>
-
-            <div class="train-action">
-                <button class="buy-btn" onclick="buyTicket('${trip.id}')">
-                    Acheter
-                </button>
-            </div>
+            dayDiv.innerHTML = `
+            ${dayLabels[current.getDay()]}<br>
+            <span>${current.getDate()}</span>
         `;
 
-        list.appendChild(card);
+            dayDiv.addEventListener("click", () => {
+                const newDate = current.toISOString().split("T")[0];
+                const newUrl = `recherche.html?from=${encodeURIComponent(from || "")}&to=${encodeURIComponent(to || "")}&date=${encodeURIComponent(newDate)}`;
+                window.location.href = newUrl;
+            });
+
+            container.appendChild(dayDiv);
+        }
+    }
+
+    document.getElementById("prevDaysBtn").addEventListener("click", () => {
+        dayOffset -= 1;
+        renderDays();
     });
-}
 
-loadTrips();
+    document.getElementById("nextDaysBtn").addEventListener("click", () => {
+        dayOffset += 1;
+        renderDays();
+    });
 
-async function buyTicket(tripId) {
+    document.getElementById("searchAgainBtn").addEventListener("click", () => {
+        const currentDate = selectedDate.toISOString().split("T")[0];
+        const newUrl = `index.html?from=${encodeURIComponent(from || "")}&to=${encodeURIComponent(to || "")}&date=${encodeURIComponent(currentDate)}`;
+        window.location.href = newUrl;
+    });
 
-    try {
-        const res = await fetch(`/tickets/buy?tripId=${tripId}`, {
-            method: "POST"
-        });
-
-        if (!res.ok) {
-            alert("Purchase failed");
+    async function loadTrips() {
+        if (!from || !to) {
+            trainCount.textContent = "Recherche incomplète";
+            tripsList.innerHTML = `
+            <div class="empty-state">
+                <h3>Recherche incomplète</h3>
+                <p>Veuillez renseigner une ville de départ et une ville d’arrivée.</p>
+            </div>
+        `;
             return;
         }
 
-        alert("Ticket purchased!");
-        window.location.href = "mytickets.html";
+        try {
+            const response = await fetch(
+                `/trips/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
+            );
 
-    } catch (err) {
-        console.error(err);
-        alert("Error buying ticket");
+            if (!response.ok) {
+                throw new Error("Erreur lors du chargement des trajets");
+            }
+
+            const trips = await response.json();
+            tripsList.innerHTML = "";
+            trainCount.textContent = `${trips.length} trains disponibles`;
+
+            if (trips.length === 0) {
+                tripsList.innerHTML = `
+                <div class="empty-state">
+                    <h3>Aucun train disponible</h3>
+                    <p>Aucun trajet ne correspond à votre recherche pour le moment.</p>
+                </div>
+            `;
+                return;
+            }
+
+            trips.forEach(trip => {
+                const departureDate = new Date(trip.departureTime);
+                const arrivalDate = new Date(trip.arrivalTime);
+
+                const card = document.createElement("article");
+                card.className = "train-card";
+
+                card.innerHTML = `
+                <div class="train-info">
+                    <h3>${trip.departure} → ${trip.destination}</h3>
+
+                    <div class="train-route">
+                        <div class="route-left">
+                            <strong>${departureDate.toLocaleDateString("fr-FR")}</strong>
+                            <span>${departureDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
+                            <span>${trip.departure}</span>
+                        </div>
+
+                        <div class="route-line"></div>
+
+                        <div class="route-right">
+                            <strong>${arrivalDate.toLocaleDateString("fr-FR")}</strong>
+                            <span>${arrivalDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
+                            <span>${trip.destination}</span>
+                        </div>
+                    </div>
+
+                    <div class="price-block">
+                        <span>Prix</span>
+                        <strong>${trip.price}€</strong>
+                    </div>
+                </div>
+
+                <div class="train-action">
+                    <button class="buy-btn" onclick="goToDetail(
+                        '${trip.id}',
+                        '${trip.departure}',
+                        '${trip.destination}',
+                        '${trip.price}',
+                        '${trip.departureTime}',
+                        '${trip.arrivalTime}'
+                    )">
+                        Acheter
+                    </button>
+                </div>
+            `;
+
+                tripsList.appendChild(card);
+            });
+
+        } catch (err) {
+            console.error(err);
+            trainCount.textContent = "Erreur de chargement";
+            tripsList.innerHTML = `
+            <div class="empty-state">
+                <h3>Impossible de charger les trajets</h3>
+                <p>Veuillez réessayer plus tard.</p>
+            </div>
+        `;
+        }
     }
-}
 
+    async function buyTicket(tripId) {
+        try {
+            const res = await fetch(`/tickets/buy?tripId=${tripId}`, {
+                method: "POST"
+            });
+
+            if (!res.ok) {
+                alert("Purchase failed");
+                return;
+            }
+
+            alert("Ticket purchased!");
+            window.location.href = "mytickets.html";
+
+        } catch (err) {
+            console.error(err);
+            alert("Error buying ticket");
+        }
+    }
+
+    renderDays();
+    loadTrips();
+    function goToDetail(tripId, departure, destination, price, departureTime, arrivalTime) {
+        const url =
+            `detail.html?tripId=${encodeURIComponent(tripId)}`
+            + `&departure=${encodeURIComponent(departure)}`
+            + `&destination=${encodeURIComponent(destination)}`
+            + `&price=${encodeURIComponent(price)}`
+            + `&departureTime=${encodeURIComponent(departureTime)}`
+            + `&arrivalTime=${encodeURIComponent(arrivalTime)}`
+            + `&rank=${encodeURIComponent("Classe standard")}`;
+
+        window.location.href = url;
+    }
 </script>
 
 <script src="app.js"></script>

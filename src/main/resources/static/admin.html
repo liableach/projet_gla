@@ -1,159 +1,285 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Panel</title>
+    <title>Panneau d’administration</title>
     <link rel="stylesheet" href="admin.css">
 </head>
 
 <body>
+<div class="admin-page">
 
-<div class="page">
+    <header class="topbar">
+        <a href="index.html" class="logo">
+            <img src="assets/logo.png" alt="TouTou Logo">
+        </a>
 
-    <h1>Admin Panel</h1>
+        <nav class="menu">
+            <a href="scanner.html" id="scannerLink" style="display:none;">SCANNER</a>
+            <a href="admin.html" class="active-link">ADMIN</a>
+            <a href="login.html" class="user-avatar">
+                <img src="assets/client.png" alt="Profil utilisateur" />
+            </a>
+        </nav>
+    </header>
 
-    <table>
+    <div class="separator"></div>
 
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+    <main class="admin-main">
+        <section class="page-header">
+            <div>
+                <h1>Panneau d’administration</h1>
+                <p>Gérez les utilisateurs, leurs rôles et créez de nouveaux trajets.</p>
+            </div>
+        </section>
 
-        <tbody id="usersTable">
-        </tbody>
+        <div id="messageBox" class="message-box hidden"></div>
 
-    </table>
-    <h2>Create Trip</h2>
+        <section class="dashboard-grid">
 
-    <div style="margin-bottom:20px; display:flex; flex-direction:column; gap:10px; max-width:400px;">
+            <!-- USERS -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Gestion des utilisateurs</h2>
+                        <p>Mettre à jour les rôles des comptes existants.</p>
+                    </div>
+                    <span class="badge" id="usersCountBadge">0 utilisateurs</span>
+                </div>
 
-    <input id="departure" placeholder="Departure">
-    <input id="destination" placeholder="Destination">
-    <input id="price" type="number" placeholder="Price">
+                <div class="table-wrapper">
+                    <table class="users-table">
+                        <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <label>Departure time</label>
-    <input id="departureTime" type="datetime-local">
+            <!-- CREATE TRIP -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Créer un trajet</h2>
+                        <p>Ajouter un nouveau trajet ferroviaire au système.</p>
+                    </div>
+                </div>
 
-    <label>Arrival time</label>
-    <input id="arrivalTime" type="datetime-local">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="departure">Ville de départ</label>
+                        <input id="departure" placeholder="Ex: Paris">
+                    </div>
 
-    <button onclick="createTrip()">Create Trip</button>
+                    <div class="form-group">
+                        <label for="destination">Ville d’arrivée</label>
+                        <input id="destination" placeholder="Ex: Lyon">
+                    </div>
 
-</div>
+                    <div class="form-group">
+                        <label for="price">Prix (€)</label>
+                        <input id="price" type="number" min="0" placeholder="Ex: 45">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="departureTime">Heure de départ</label>
+                        <input id="departureTime" type="datetime-local">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="arrivalTime">Heure d’arrivée</label>
+                        <input id="arrivalTime" type="datetime-local">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-light" onclick="resetTripForm()">Réinitialiser</button>
+                    <button class="btn btn-primary" onclick="createTrip()">Créer le trajet</button>
+                </div>
+            </div>
+
+        </section>
+    </main>
 </div>
 
 <script>
-requireAdmin();
-async function loadUsers() {
+    requireAdmin();
 
-    const response = await fetch('/admin/users');
+    function showMessage(message, type = "info") {
+        const box = document.getElementById("messageBox");
+        box.textContent = message;
+        box.className = `message-box ${type}`;
+        box.classList.remove("hidden");
 
-    if (response.status === 401) {
-        alert('Not logged in');
-        return;
+        setTimeout(() => {
+            box.classList.add("hidden");
+        }, 3500);
     }
 
-    if (response.status === 403) {
-        alert('Access denied');
-        return;
-    }
+    async function loadUsers() {
+        try {
+            const response = await fetch('/admin/users');
 
-    const users = await response.json();
+            if (response.status === 401) {
+                showMessage('Vous n’êtes pas connecté.', 'error');
+                return;
+            }
 
-    const table = document.getElementById('usersTable');
+            if (response.status === 403) {
+                showMessage('Accès refusé.', 'error');
+                return;
+            }
 
-    table.innerHTML = '';
+            if (!response.ok) {
+                throw new Error("Erreur de chargement des utilisateurs");
+            }
 
-    users.forEach(user => {
+            const users = await response.json();
 
-        const row = document.createElement('tr');
+            document.getElementById("usersCountBadge").textContent =
+                `${users.length} utilisateur${users.length > 1 ? "s" : ""}`;
 
-        row.innerHTML = `
-            <td>${user.name}</td>
-            <td>${user.email}</td>
+            const table = document.getElementById('usersTable');
+            table.innerHTML = '';
 
-            <td>
-                <select id="role-${user.id}">
-                    <option value="USER"
-                        ${user.role === 'USER' ? 'selected' : ''}>
-                        USER
-                    </option>
+            if (users.length === 0) {
+                table.innerHTML = `
+                <tr>
+                    <td colspan="4" class="empty-cell">Aucun utilisateur trouvé.</td>
+                </tr>
+            `;
+                return;
+            }
 
-                    <option value="CONDUCTOR"
-                        ${user.role === 'CONDUCTOR' ? 'selected' : ''}>
-                        CONDUCTOR
-                    </option>
+            users.forEach(user => {
+                const row = document.createElement('tr');
 
-                    <option value="ADMIN"
-                        ${user.role === 'ADMIN' ? 'selected' : ''}>
-                        ADMIN
-                    </option>
-                </select>
-            </td>
+                row.innerHTML = `
+                <td>${user.name}</td>
+                <td>${user.email}</td>
 
-            <td>
-                <button onclick="updateRole('${user.id}')">
-                    Update
-                </button>
-            </td>
-        `;
+                <td>
+                    <select class="role-select" id="role-${user.id}">
+                        <option value="USER" ${user.role === 'USER' ? 'selected' : ''}>USER</option>
+                        <option value="CONDUCTOR" ${user.role === 'CONDUCTOR' ? 'selected' : ''}>CONDUCTOR</option>
+                        <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+                    </select>
+                </td>
 
-        table.appendChild(row);
-    });
-}
+                <td>
+                    <button class="btn btn-small btn-primary" onclick="updateRole('${user.id}')">
+                        Mettre à jour
+                    </button>
+                </td>
+            `;
 
-async function updateRole(userId) {
+                table.appendChild(row);
+            });
 
-    const roleSelect =
-        document.getElementById(`role-${userId}`);
-
-    const role = roleSelect.value;
-
-    const response = await fetch(
-        `/admin/role?userId=${userId}&role=${role}`,
-        {
-            method: 'POST'
+        } catch (error) {
+            console.error(error);
+            showMessage("Impossible de charger les utilisateurs.", "error");
         }
-    );
-
-    const result = await response.text();
-
-    alert(result);
-}
-
-loadUsers();
-async function createTrip() {
-
-    const trip = {
-        departure: document.getElementById("departure").value,
-        destination: document.getElementById("destination").value,
-        price: parseInt(document.getElementById("price").value),
-
-        departureTime: new Date(document.getElementById("departureTime").value).getTime(),
-        arrivalTime: new Date(document.getElementById("arrivalTime").value).getTime()
-    };
-
-    const res = await fetch("/trips/create", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(trip)
-    });
-
-    if (res.ok) {
-        alert("Trip created successfully");
-        location.reload(); // refresh table if you want
-    } else {
-        alert("Failed to create trip");
     }
-}
+
+    async function updateRole(userId) {
+        try {
+            const roleSelect = document.getElementById(`role-${userId}`);
+            const role = roleSelect.value;
+
+            const response = await fetch(`/admin/role?userId=${userId}&role=${role}`, {
+                method: 'POST'
+            });
+
+            const result = await response.text();
+
+            if (!response.ok) {
+                throw new Error(result || "Échec de la mise à jour");
+            }
+
+            showMessage(result || "Rôle mis à jour avec succès.", "success");
+
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || "Erreur lors de la mise à jour du rôle.", "error");
+        }
+    }
+
+    function resetTripForm() {
+        document.getElementById("departure").value = "";
+        document.getElementById("destination").value = "";
+        document.getElementById("price").value = "";
+        document.getElementById("departureTime").value = "";
+        document.getElementById("arrivalTime").value = "";
+    }
+
+    async function createTrip() {
+        try {
+            const departure = document.getElementById("departure").value.trim();
+            const destination = document.getElementById("destination").value.trim();
+            const priceValue = document.getElementById("price").value;
+            const departureTimeValue = document.getElementById("departureTime").value;
+            const arrivalTimeValue = document.getElementById("arrivalTime").value;
+
+            if (!departure || !destination || !priceValue || !departureTimeValue || !arrivalTimeValue) {
+                showMessage("Veuillez remplir tous les champs du trajet.", "error");
+                return;
+            }
+
+            const price = parseInt(priceValue, 10);
+
+            if (isNaN(price) || price < 0) {
+                showMessage("Le prix doit être un nombre positif.", "error");
+                return;
+            }
+
+            const departureTime = new Date(departureTimeValue).getTime();
+            const arrivalTime = new Date(arrivalTimeValue).getTime();
+
+            if (arrivalTime <= departureTime) {
+                showMessage("L’heure d’arrivée doit être postérieure à l’heure de départ.", "error");
+                return;
+            }
+
+            const trip = {
+                departure,
+                destination,
+                price,
+                departureTime,
+                arrivalTime
+            };
+
+            const res = await fetch("/trips/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(trip)
+            });
+
+            if (!res.ok) {
+                throw new Error("Échec de la création du trajet");
+            }
+
+            showMessage("Trajet créé avec succès.", "success");
+            resetTripForm();
+
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message || "Impossible de créer le trajet.", "error");
+        }
+    }
+
+    loadUsers();
 </script>
+
 <script src="app.js"></script>
 </body>
 </html>

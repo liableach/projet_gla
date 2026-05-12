@@ -34,21 +34,40 @@ html, body {
     object-fit: contain;
 }
 
-.top-links {
+.menu {
     display: flex;
     align-items: center;
-    gap: 34px;
+    gap: 26px;
 }
 
-.top-links a {
+.menu a {
     text-decoration: none;
-    color: #222;
-    font-size: 0.95rem;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
 }
 
-.top-links .auth-link {
+.menu a:hover {
     color: #1bb7e8;
-    font-weight: 600;
+}
+
+.user-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(27, 183, 232, 0.25);
+    flex-shrink: 0;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .search-layout {
@@ -65,7 +84,7 @@ html, body {
 }
 
 .mini-search {
-    margin-bottom: 50px;
+    margin-bottom: 20px;
 }
 
 .mini-inputs {
@@ -74,14 +93,21 @@ html, body {
     margin-bottom: 20px;
 }
 
-.mini-inputs input {
+.summary-field {
     flex: 1;
-    border: none;
     border-bottom: 1px solid #ccc;
-    background: transparent;
     padding: 12px 0;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+}
+
+.summary-field span {
     font-size: 0.95rem;
-    outline: none;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .mini-search button {
@@ -95,11 +121,27 @@ html, body {
     cursor: pointer;
 }
 
+.mini-search button:hover {
+    background: #67cbe8;
+}
+
+.selected-date-label {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+}
+
 .days-selector {
     display: flex;
     align-items: center;
     gap: 18px;
-    margin-top: 35px;
+    margin-top: 16px;
+}
+
+.days-container {
+    display: flex;
+    align-items: center;
+    gap: 18px;
 }
 
 .day-arrow {
@@ -117,6 +159,9 @@ html, body {
     padding: 8px 10px;
     min-width: 54px;
     line-height: 1.2;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: 0.2s ease;
 }
 
 .day span {
@@ -126,7 +171,6 @@ html, body {
 .day.active {
     background: #22bae9;
     color: white;
-    border-radius: 10px;
     padding: 12px 14px;
 }
 
@@ -262,10 +306,26 @@ html, body {
     font-size: 1rem;
     text-align: center;
     min-width: 130px;
+    border: none;
+    cursor: pointer;
 }
 
 .buy-btn:hover {
     background: #67cbe8;
+}
+
+.empty-state {
+    background: white;
+    border: 1px solid #e5eef5;
+    border-radius: 20px;
+    padding: 40px 24px;
+    color: #6b7280;
+}
+
+.empty-state h3 {
+    font-size: 22px;
+    color: #374151;
+    margin-bottom: 10px;
 }
 
 @media (max-width: 1200px) {
