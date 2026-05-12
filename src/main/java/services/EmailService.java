@@ -19,8 +19,7 @@ public class EmailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
 
-            MimeMessageHelper helper =
-                    new MimeMessageHelper(message, true);
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setTo(toEmail);
             helper.setSubject("Your Ticket QR Code");
@@ -32,6 +31,21 @@ public class EmailService {
 
         } catch (Exception e) {
             throw new RuntimeException("Email failed", e);
+        }
+    }
+
+    public void sendSimpleEmail(String to, String subject, String text) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+
+            MimeMessageHelper helper = new MimeMessageHelper(message);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text);
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 }

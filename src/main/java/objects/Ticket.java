@@ -20,7 +20,8 @@ public class Ticket {
     private Date expiration_date;
     private UUID validatedBy;
 
-    public Ticket() {}
+    public Ticket() {
+    }
 
     public Ticket(
             UUID id_t,
@@ -33,8 +34,7 @@ public class Ticket {
             TicketState state,
             Date expiration_date,
             UUID validatedBy,
-            Date validated_at
-    ) {
+            Date validated_at) {
         this.id_t = id_t;
         this.id_u = id_u;
         this.departure = departure;
@@ -55,17 +55,22 @@ public class Ticket {
                 && now.before(expiration_date)
                 && !now.before(date_departure);
     }
+
     public String getStatus() {
-        if (state == TicketState.VALIDATED)return "Validated by " + validatedBy + " at " + validated_at;
-        if (isValid()) return "Valid";
+        if (state == TicketState.VALIDATED)
+            return "Validated by " + validatedBy + " at " + validated_at;
+        if (isValid())
+            return "Valid";
         return "Invalid";
-}
+    }
+
     public boolean isValidated() {
         return state == TicketState.VALIDATED;
     }
 
     public void validate(UUID controllerId) {
-        if (state == TicketState.VALIDATED) return;
+        if (state == TicketState.VALIDATED)
+            return;
 
         this.state = TicketState.VALIDATED;
         this.validatedBy = controllerId;
@@ -76,23 +81,59 @@ public class Ticket {
         this.state = state;
     }
 
-    public UUID getId_t() { return id_t; }
-    public UUID getId_u() { return id_u; }
-    public TicketState getState() { return state; }
+    public UUID getId_t() {
+        return id_t;
+    }
 
-    public String getDeparture() { return departure; }
-    public String getDestination() { return destination; }
-    public int getPrice() { return price; }
+    public UUID getId_u() {
+        return id_u;
+    }
 
-    public Date getDateDeparture() { return date_departure; }
-    public Date getDateArrival() { return date_arrival; }
+    public TicketState getState() {
+        return state;
+    }
 
-    public Date getExpirationDate() { return expiration_date; }
-    public Date getValidatedAtDate() { return validated_at; }
+    public String getDeparture() {
+        return departure;
+    }
 
-    public UUID getValidatedBy() { return validatedBy; }
+    public String getDestination() {
+        return destination;
+    }
 
-    public void setExpirationDate(Date d) { this.expiration_date = d; }
-    public void setValidatedAt(Date d) { this.validated_at = d; }
-    public void setValidatedBy(UUID id) { this.validatedBy = id; }
+    public int getPrice() {
+        return price;
+    }
+
+    public Date getDateDeparture() {
+        return date_departure;
+    }
+
+    public Date getDateArrival() {
+        return date_arrival;
+    }
+
+    public Date getExpirationDate() {
+        return expiration_date;
+    }
+
+    public Date getValidatedAtDate() {
+        return validated_at;
+    }
+
+    public UUID getValidatedBy() {
+        return validatedBy;
+    }
+
+    public void setExpirationDate(Date d) {
+        this.expiration_date = d;
+    }
+
+    public void setValidatedAt(Date d) {
+        this.validated_at = d;
+    }
+
+    public void setValidatedBy(UUID id) {
+        this.validatedBy = id;
+    }
 }

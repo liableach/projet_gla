@@ -217,6 +217,45 @@ public class Ticket {
 }
 
 
+===== ./main/java/objects/ValidationResult.java =====
+package objects;
+
+public enum ValidationResult {
+    VALID,
+    ALREADY_VALIDATED,
+    INVALID
+}
+
+
+===== ./main/java/objects/LoginRequest.java =====
+package objects;
+
+public class LoginRequest {
+
+    private String email;
+    private String password;
+
+    public LoginRequest() {
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
+
+
 ===== ./main/java/services/AdminService.java =====
 package services;
 import java.util.Date;
@@ -236,79 +275,6 @@ public class AdminService {
     public void createTrip(String dep, String dest, int price, Date d1, Date d2) {
         Trip t = new Trip(java.util.UUID.randomUUID(), dep, dest, price, d1, d2);
         tripDAO.createTrip(t);
-    }
-}
-
-
-===== ./main/java/services/EmailService.java =====
-package services;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.stereotype.Service;
-
-import jakarta.mail.internet.MimeMessage;
-import java.io.File;
-
-@Service
-public class EmailService {
-
-    @Autowired
-    private JavaMailSender mailSender;
-
-    public void sendTicketQR(String toEmail, File qrFile, String ticketId) {
-
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-
-            MimeMessageHelper helper =
-                    new MimeMessageHelper(message, true);
-
-            helper.setTo(toEmail);
-            helper.setSubject("Your Ticket QR Code");
-            helper.setText("Here is your ticket QR. Ticket ID: " + ticketId);
-
-            helper.addAttachment("ticket.png", qrFile);
-
-            mailSender.send(message);
-
-        } catch (Exception e) {
-            throw new RuntimeException("Email failed", e);
-        }
-    }
-}
-
-
-===== ./main/java/services/AuthentificationService.java =====
-package services;
-
-import objects.Role;
-import objects.User;
-import org.mindrot.jbcrypt.BCrypt;
-import org.springframework.stereotype.Service;
-import dao.UserDAO;
-
-@Service
-public class AuthentificationService {
-
-    private final UserDAO userDAO;
-
-    public AuthentificationService(UserDAO userDAO) {
-        this.userDAO = userDAO;
-    }
-
-    public void register(String name, String email, String password) {
-        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
-        userDAO.createUser(name, email, hashedPassword, Role.USER);
-    }
-
-    public User login(String email, String password) {
-        User user = userDAO.findByEmail(email);
-        if (user == null) return null;
-        boolean ok = BCrypt.checkpw(password, user.getPassword());
-        if (!ok) return null;
-        return user;
     }
 }
 
@@ -366,6 +332,224 @@ public class NotificationService {
 }
 
 
+===== ./main/java/services/TripService.java =====
+package services;
+
+import dao.TripDAO;
+import objects.Trip;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class TripService {
+
+    @Autowired
+    private TripDAO tripDAO;
+
+    public Trip findById(UUID id) {
+        return tripDAO.findById(id);
+    }
+    
+    public List<Trip> search(String departure, String destination) {
+        return tripDAO.search(departure, destination);
+    }
+    
+    public void createTrip(Trip trip) {
+        tripDAO.createTrip(trip);
+    }
+}
+
+
+===== ./main/java/services/EmailService.java =====
+package services;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+
+import jakarta.mail.internet.MimeMessage;
+import java.io.File;
+
+@Service
+public class EmailService {
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    public void sendTicketQR(String toEmail, File qrFile, String ticketId) {
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true);
+
+            helper.setTo(toEmail);
+            helper.setSubject("Your Ticket QR Code");
+            helper.setText("Here is your ticket QR. Ticket ID: " + ticketId);
+
+            helper.addAttachment("ticket.png", qrFile);
+
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Email failed", e);
+        }
+    }
+    public void sendSimpleEmail(String to, String subject, String text) {
+    try {
+        MimeMessage message = mailSender.createMimeMessage();
+
+        MimeMessageHelper helper = new MimeMessageHelper(message);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(text);
+        mailSender.send(message);
+
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
+}
+}
+
+
+===== ./main/java/services/TicketExpirationService.java =====
+package services;
+
+import dao.TicketDAO;
+import dao.UserDAO;
+import objects.Ticket;
+import objects.TicketState;
+import objects.User;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.util.Date;
+import java.util.List;
+
+@Service
+public class TicketExpirationService {
+
+    private final TicketDAO ticketDAO;
+    private final EmailService emailService;
+    private final UserDAO userDAO;
+
+    public TicketExpirationService(TicketDAO ticketDAO, EmailService emailService, UserDAO userDAO) {
+        this.ticketDAO = ticketDAO;
+        this.emailService = emailService;
+        this.userDAO = userDAO;
+    }
+
+    @Scheduled(fixedRate = 60000)
+    public void expireTickets() {
+
+        List<Ticket> tickets = ticketDAO.findActiveTickets();
+
+        Date now = new Date();
+
+        for (Ticket ticket : tickets) {
+
+            if (ticket.getExpirationDate() != null && (now.after(ticket.getExpirationDate()) || now.equals(ticket.getExpirationDate()))) {
+                ticket.setState(TicketState.EXPIRED);
+                ticketDAO.update(ticket);
+                User user = userDAO.findById(ticket.getId_u());
+                emailService.sendSimpleEmail(user.getEmail(), "Ticket expired", 
+                    "Your ticket from " + ticket.getDeparture() + " to " + ticket.getDestination() + " has expired.");
+            }
+        }
+    }
+}
+
+
+===== ./main/java/services/ValidationService.java =====
+package services;
+
+import dao.TicketDAO;
+import dao.UserDAO;
+import objects.Ticket;
+import objects.TicketState;
+import objects.User;
+import objects.ValidationResult;
+
+import org.springframework.stereotype.Service;
+
+import java.util.UUID;
+
+@Service
+public class ValidationService {
+
+    private final TicketDAO ticketDAO;
+    private final UserDAO userDAO;
+    private final EmailService emailService;
+
+    public ValidationService(TicketDAO ticketDAO, UserDAO userDAO, EmailService emailService) {
+        this.ticketDAO = ticketDAO;
+        this.userDAO = new UserDAO();
+        this.emailService = new EmailService();
+    }
+    public Ticket getTicket(UUID ticketId) { return ticketDAO.findById(ticketId); }
+
+    public ValidationResult validateTicket(UUID ticketId, UUID controllerId) {
+
+        Ticket ticket = ticketDAO.findById(ticketId);
+
+        if (ticket == null) return ValidationResult.INVALID;
+
+        if (ticket.getState() == TicketState.VALIDATED) return ValidationResult.ALREADY_VALIDATED;
+
+        if (ticket.getState() != TicketState.PAID) return ValidationResult.INVALID;
+        ticket.validate(controllerId);
+
+        ticketDAO.update(ticket);
+        User user = userDAO.findById(ticket.getId_u());
+        emailService.sendSimpleEmail(user.getEmail(), "Ticket validated", "Your ticket has been validated successfully.");
+
+        return ValidationResult.VALID;
+    }
+}
+
+
+===== ./main/java/services/AuthentificationService.java =====
+package services;
+
+import objects.Role;
+import objects.User;
+import org.mindrot.jbcrypt.BCrypt;
+import org.springframework.stereotype.Service;
+import dao.UserDAO;
+
+@Service
+public class AuthentificationService {
+
+    private final UserDAO userDAO;
+
+    public AuthentificationService(UserDAO userDAO) {
+        this.userDAO = userDAO;
+    }
+
+    public void register(String name, String email, String password) {
+        if (userDAO.emailExists(email)) throw new RuntimeException("email already exists");
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+        userDAO.createUser(name, email, hashedPassword, Role.USER);
+    }
+
+    public User login(String email, String password) {
+        User user = userDAO.findByEmail(email);
+        if (user == null)
+            return null;
+        boolean ok = BCrypt.checkpw(password, user.getPassword());
+        if (!ok)
+            return null;
+        return user;
+    }
+}
+
+
 ===== ./main/java/services/TicketService.java =====
 package services;
 
@@ -404,7 +588,8 @@ public class TicketService {
         );
 	    ticketDAO.save(t);
         String path = System.getProperty("user.dir") + "/qrs/" + t.getId_t() + ".png";
-        QR.saveQR(t.getId_t(), path);
+        String qrContent = t.getId_t() + ":" + t.getId_u();
+        QR.saveQR(qrContent, path);
         File qrFile = new File("qrs/" + t.getId_t() + ".png");
         emailService.sendTicketQR(email, qrFile, t.getId_t().toString());
 
@@ -412,74 +597,6 @@ public class TicketService {
     }
     public List<Ticket> getUserTickets(UUID userId) {
         return ticketDAO.findByUserId(userId);
-    }
-}
-
-
-===== ./main/java/services/TripService.java =====
-package services;
-
-import dao.TripDAO;
-import objects.Trip;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.UUID;
-
-@Service
-public class TripService {
-
-    @Autowired
-    private TripDAO tripDAO;
-
-    public Trip findById(UUID id) {
-        return tripDAO.findById(id);
-    }
-    
-    public List<Trip> search(String departure, String destination) {
-        return tripDAO.search(departure, destination);
-    }
-    
-    public void createTrip(Trip trip) {
-        tripDAO.createTrip(trip);
-    }
-}
-
-
-===== ./main/java/services/ValidationService.java =====
-package services;
-
-import dao.TicketDAO;
-import objects.Ticket;
-import objects.TicketState;
-
-import org.springframework.stereotype.Service;
-
-import java.util.UUID;
-
-@Service
-public class ValidationService {
-
-    private final TicketDAO ticketDAO;
-
-    public ValidationService(TicketDAO ticketDAO) {
-        this.ticketDAO = ticketDAO;
-    }
-
-    public boolean validateTicket(UUID ticketId, UUID controllerId) {
-
-        Ticket ticket = ticketDAO.findById(ticketId);
-
-        if (ticket == null) return false;
-
-        if (ticket.getState() != TicketState.PAID) return false;
-
-        ticket.validate(controllerId);
-
-        ticketDAO.update(ticket);
-
-        return true;
     }
 }
 
@@ -496,19 +613,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.UUID;
 
 public class QR {
 
-    public static void saveQR(UUID id, String filePath) {
+    public static void saveQR(String content, String filePath) {
         try {
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            BitMatrix bitMatrix = qrCodeWriter.encode(
-                    id.toString(),
-                    BarcodeFormat.QR_CODE,
-                    200,
-                    200
-            );
+            BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, 200, 200);
             Path path = Paths.get(filePath).toAbsolutePath();
             Files.createDirectories(path.getParent());
             MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
@@ -573,66 +684,6 @@ public class AdminController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-}
-
-
-===== ./main/java/api/ScanController.java =====
-package api;
-
-import jakarta.servlet.http.HttpSession;
-import objects.Role;
-import objects.User;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import services.ValidationService;
-
-import java.util.UUID;
-
-@RestController
-public class ScanController {
-
-    private final ValidationService validationService;
-
-    public ScanController(ValidationService validationService) {
-        this.validationService = validationService;
-    }
-
-    @PostMapping("/scan")
-    public ResponseEntity<String> scan(
-            @RequestParam UUID ticketId,
-            HttpSession session
-    ) {
-
-        User user = (User) session.getAttribute("user");
-
-        if (user == null) {
-            return ResponseEntity
-                    .status(401)
-                    .body("NOT LOGGED IN");
-        }
-
-        if (user.getRole() != Role.CONDUCTOR &&
-            user.getRole() != Role.ADMIN) {
-
-            return ResponseEntity
-                    .status(403)
-                    .body("FORBIDDEN");
-        }
-
-        boolean success =
-                validationService.validateTicket(
-                        ticketId,
-                        user.getId()
-                );
-
-        if (!success) {
-            return ResponseEntity
-                    .badRequest()
-                    .body("INVALID TICKET");
-        }
-
-        return ResponseEntity.ok("VALID");
-    }
 }
 
 
@@ -714,45 +765,6 @@ public class UserController {
 }
 
 
-===== ./main/java/api/AuthController.java =====
-package api;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import services.AuthentificationService;
-import jakarta.servlet.http.HttpSession;
-import objects.User;
-
-@RestController
-@RequestMapping("/auth")
-public class AuthController {
-
-    private final AuthentificationService authService;
-
-    public AuthController(AuthentificationService authService) { this.authService = authService; }
-
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestParam String name, @RequestParam String email, @RequestParam String password) {
-        authService.register(name, email, password);
-        return ResponseEntity.ok("user registered");
-    }
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestParam String email, @RequestParam String password, HttpSession session) {
-        User user = authService.login(email, password);
-        if (user == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("login failed");
-        session.setAttribute("user", user);
-        return ResponseEntity.ok("login success");
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(HttpSession session) {
-        session.invalidate();
-        return ResponseEntity.ok("logout success");
-    }
-}
-
-
 ===== ./main/java/api/TripController.java =====
 package api;
 
@@ -786,6 +798,148 @@ public class TripController {
 }
 
 
+===== ./main/java/api/GlobalExceptionHandler.java =====
+package api;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handle(Exception e) {
+
+        e.printStackTrace();
+
+        return ResponseEntity.status(500).body("Internal server error");
+    }
+}
+
+
+===== ./main/java/api/AuthController.java =====
+package api;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import services.AuthentificationService;
+import jakarta.servlet.http.HttpSession;
+import objects.User;
+
+@RestController
+@RequestMapping("/auth")
+public class AuthController {
+
+    private final AuthentificationService authService;
+
+    public AuthController(AuthentificationService authService) {
+        this.authService = authService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+        authService.register(request.getName(), request.getEmail(), request.getPassword());
+        return ResponseEntity.ok("user registered");
+    }
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequest request, HttpSession session) {
+
+        User user = authService.login(request.getEmail(), request.getPassword());
+
+        if (user == null) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("login failed");
+        }
+
+        session.setAttribute("user", user);
+
+        return ResponseEntity.ok("login success");
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok("logout success");
+    }
+}
+
+
+===== ./main/java/api/ScanController.java =====
+package api;
+
+import jakarta.servlet.http.HttpSession;
+import objects.Role;
+import objects.Ticket;
+import objects.TicketState;
+import objects.User;
+import objects.ValidationResult;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import services.ValidationService;
+
+import java.util.UUID;
+
+@RestController
+public class ScanController {
+
+    private final ValidationService validationService;
+
+    public ScanController(ValidationService validationService) {
+        this.validationService = validationService;
+    }
+
+    @PostMapping("/scan")
+    public ResponseEntity<?> scan(@RequestParam UUID ticketId, @RequestParam UUID userId, HttpSession session) {
+
+        User user = (User) session.getAttribute("user");
+
+        if (user == null) {
+            return ResponseEntity.status(401).body("NOT LOGGED IN");
+        }
+
+        if (user.getRole() != Role.CONDUCTOR &&
+                user.getRole() != Role.ADMIN) {
+            return ResponseEntity.status(403).body("FORBIDDEN");
+        }
+
+        ValidationResult result = validationService.validateTicket(ticketId, user.getId());
+
+        Ticket ticket = validationService.getTicket(ticketId);
+
+        if (ticket == null) {
+            return ResponseEntity.badRequest()
+                    .body("INVALID");
+        }
+
+        if (!ticket.getId_u().equals(userId)) {
+            return ResponseEntity.badRequest()
+                    .body("FRAUD DETECTED");
+        }
+
+        return switch (result) {
+
+            case VALID -> ResponseEntity.ok(
+                    "Validated by " +
+                            ticket.getValidatedBy() +
+                            " at " +
+                            ticket.getValidatedAtDate());
+
+            case ALREADY_VALIDATED -> ResponseEntity.ok(
+                    "Validated by " +
+                            ticket.getValidatedBy() +
+                            " at " +
+                            ticket.getValidatedAtDate());
+
+            default -> ResponseEntity.badRequest().body("INVALID TICKET");
+        };
+    }
+}
+
+
 ===== ./main/java/database/DBConnection.java =====
 package database;
 
@@ -804,96 +958,116 @@ public class DBConnection {
 }
 
 
-===== ./main/java/dao/UserDAO.java =====
+===== ./main/java/dao/TripDAO.java =====
 package dao;
 
-import database.DBConnection;
-import objects.Role;
-import objects.User;
-import java.sql.Connection;
+import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import org.springframework.stereotype.Repository;
+import java.sql.Connection;
+import database.DBConnection;
+import objects.Trip;
 
 @Repository
-public class UserDAO {
-    public void createUser(String name, String email, String hashedPassword, Role role) {
-        String sql = "INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setObject(1, java.util.UUID.randomUUID());
-            stmt.setString(2, name);
-            stmt.setString(3, email);
-            stmt.setString(4, hashedPassword);
-            stmt.setString(5, role.name());
-            int rows = stmt.executeUpdate();
-            System.out.println("Rows created: " + rows);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    public User findByEmail(String email) {
-        String sql = "SELECT * FROM users WHERE email = ?";
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+public class TripDAO {
 
-            stmt.setString(1, email);
-            var rs = stmt.executeQuery();
-            if (rs.next()) {
-                User user = new User();
-                user.setId(UUID.fromString(rs.getString("id")));
-                user.setName(rs.getString("name"));
-                user.setEmail(rs.getString("email"));
-                user.setPassword(rs.getString("password"));
-                user.setRole(Role.valueOf(rs.getString("role")));
-                return user;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    public void updateRole(UUID userId, Role role) {
+    public void createTrip(Trip t) {
 
-        String sql = "UPDATE users SET role = ? WHERE id = ?";
-        try (
-            Connection conn = DBConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            stmt.setString(1, role.name());
-            stmt.setObject(2, userId);
+    String sql = """
+        INSERT INTO trips (id, departure, destination, price, departure_time, arrival_time)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """;
 
-            stmt.executeUpdate();
+    try (Connection conn = DBConnection.getConnection();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        UUID id = (t.getId() != null) ? t.getId() : UUID.randomUUID();
+
+        stmt.setObject(1, id);
+        stmt.setString(2, t.getDeparture());
+        stmt.setString(3, t.getDestination());
+        stmt.setInt(4, t.getPrice());
+
+        stmt.setTimestamp(5, new java.sql.Timestamp(t.getDepartureTime().getTime()));
+        stmt.setTimestamp(6, new java.sql.Timestamp(t.getArrivalTime().getTime()));
+
+        stmt.executeUpdate();
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
-    public List<User> findAll() {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users";
-        try (
-            Connection conn = DBConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql)
-        ) {
-            var rs = stmt.executeQuery();
-            while (rs.next()) {
-                User user = new User();
-                user.setId(UUID.fromString(rs.getString("id")));
-                user.setName(rs.getString("name"));
-                user.setEmail(rs.getString("email"));
-                user.setPassword(rs.getString("password"));
-                user.setRole(Role.valueOf(rs.getString("role")));
-                users.add(user);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+}
+    public Trip findById(UUID id) {
+
+    String sql = "SELECT * FROM trips WHERE id = ?";
+
+    try (
+        Connection conn = DBConnection.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)
+    ) {
+
+        stmt.setObject(1, id);
+
+        var rs = stmt.executeQuery();
+
+        if (rs.next()) {
+            UUID tripId = UUID.fromString(rs.getString("id"));
+            return new Trip(
+                tripId,
+                rs.getString("departure"),
+                rs.getString("destination"),
+                rs.getInt("price"),
+                rs.getTimestamp("departure_time"),
+                rs.getTimestamp("arrival_time")
+            );
         }
-        return users;
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    return null;
+    }
+    public List<Trip> search(String departure, String destination) {
+
+    List<Trip> trips = new ArrayList<>();
+
+    String sql = """
+        SELECT * FROM trips
+        WHERE LOWER(departure) LIKE LOWER(?)
+        AND LOWER(destination) LIKE LOWER(?)
+    """;
+
+    try (
+        Connection conn = DBConnection.getConnection();
+        PreparedStatement stmt = conn.prepareStatement(sql)
+    ) {
+
+        stmt.setString(1, "%" + departure + "%");
+        stmt.setString(2, "%" + destination + "%");
+
+        var rs = stmt.executeQuery();
+
+        while (rs.next()) {
+
+            trips.add(new Trip(
+                UUID.fromString(rs.getString("id")),
+                rs.getString("departure"),
+                rs.getString("destination"),
+                rs.getInt("price"),
+                rs.getTimestamp("departure_time"),
+                rs.getTimestamp("arrival_time")
+            ));
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return trips;
+}
 }
 
 
@@ -1042,73 +1216,47 @@ public class TicketDAO {
         e.printStackTrace();
  }
 }
+    public List<Ticket> findActiveTickets() {
 
-}
-
-
-===== ./main/java/dao/TripDAO.java =====
-package dao;
-
-import org.springframework.stereotype.Repository;
-import java.sql.PreparedStatement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.sql.Connection;
-import database.DBConnection;
-import objects.Trip;
-
-@Repository
-public class TripDAO {
-
-    public void createTrip(Trip t) {
+    List<Ticket> tickets = new ArrayList<>();
 
     String sql = """
-        INSERT INTO trips (id, departure, destination, price, departure_time, arrival_time)
-        VALUES (?, ?, ?, ?, ?, ?)
+        SELECT * FROM tickets
+        WHERE state = 'PAID'
+           OR state = 'CREATED'
+           OR state = 'VALIDATED'
     """;
-
-    try (Connection conn = DBConnection.getConnection();
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
-
-        UUID id = (t.getId() != null) ? t.getId() : UUID.randomUUID();
-
-        stmt.setObject(1, id);
-        stmt.setString(2, t.getDeparture());
-        stmt.setString(3, t.getDestination());
-        stmt.setInt(4, t.getPrice());
-
-        stmt.setTimestamp(5, new java.sql.Timestamp(t.getDepartureTime().getTime()));
-        stmt.setTimestamp(6, new java.sql.Timestamp(t.getArrivalTime().getTime()));
-
-        stmt.executeUpdate();
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-}
-    public Trip findById(UUID id) {
-
-    String sql = "SELECT * FROM trips WHERE id = ?";
 
     try (
         Connection conn = DBConnection.getConnection();
         PreparedStatement stmt = conn.prepareStatement(sql)
     ) {
 
-        stmt.setObject(1, id);
-
         var rs = stmt.executeQuery();
 
-        if (rs.next()) {
-            UUID tripId = UUID.fromString(rs.getString("id"));
-            return new Trip(
-                tripId,
-                rs.getString("departure"),
-                rs.getString("destination"),
-                rs.getInt("price"),
-                rs.getTimestamp("departure_time"),
-                rs.getTimestamp("arrival_time")
+        while (rs.next()) {
+
+            Object vb = rs.getObject("validated_by");
+
+            UUID validatedBy =
+                    vb != null ? (UUID) vb : null;
+
+            tickets.add(
+                new Ticket(
+                    (UUID) rs.getObject("id_t"),
+                    (UUID) rs.getObject("id_u"),
+                    rs.getString("departure"),
+                    rs.getString("destination"),
+                    rs.getInt("price"),
+                    rs.getTimestamp("date_departure"),
+                    rs.getTimestamp("date_arrival"),
+                    TicketState.valueOf(
+                        rs.getString("state")
+                    ),
+                    rs.getTimestamp("expiration_date"),
+                    validatedBy,
+                    rs.getTimestamp("validated_at")
+                )
             );
         }
 
@@ -1116,46 +1264,138 @@ public class TripDAO {
         e.printStackTrace();
     }
 
-    return null;
-    }
-    public List<Trip> search(String departure, String destination) {
-
-    List<Trip> trips = new ArrayList<>();
-
-    String sql = """
-        SELECT * FROM trips
-        WHERE LOWER(departure) LIKE LOWER(?)
-        AND LOWER(destination) LIKE LOWER(?)
-    """;
-
-    try (
-        Connection conn = DBConnection.getConnection();
-        PreparedStatement stmt = conn.prepareStatement(sql)
-    ) {
-
-        stmt.setString(1, "%" + departure + "%");
-        stmt.setString(2, "%" + destination + "%");
-
-        var rs = stmt.executeQuery();
-
-        while (rs.next()) {
-
-            trips.add(new Trip(
-                UUID.fromString(rs.getString("id")),
-                rs.getString("departure"),
-                rs.getString("destination"),
-                rs.getInt("price"),
-                rs.getTimestamp("departure_time"),
-                rs.getTimestamp("arrival_time")
-            ));
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-
-    return trips;
+    return tickets;
 }
+}
+
+
+===== ./main/java/dao/UserDAO.java =====
+package dao;
+
+import database.DBConnection;
+import objects.Role;
+import objects.User;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Repository;
+
+@Repository
+public class UserDAO {
+    public void createUser(String name, String email, String hashedPassword, Role role) {
+        String sql = "INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setObject(1, java.util.UUID.randomUUID());
+            stmt.setString(2, name);
+            stmt.setString(3, email);
+            stmt.setString(4, hashedPassword);
+            stmt.setString(5, role.name());
+            int rows = stmt.executeUpdate();
+            System.out.println("Rows created: " + rows);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public User findById(UUID id) {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setObject(1, id);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                User user = new User();
+                user.setId(UUID.fromString(rs.getString("id")));
+                user.setName(rs.getString("name"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRole(Role.valueOf(rs.getString("role")));
+                return user;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public User findByEmail(String email) {
+        String sql = "SELECT * FROM users WHERE email = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, email);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                User user = new User();
+                user.setId(UUID.fromString(rs.getString("id")));
+                user.setName(rs.getString("name"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRole(Role.valueOf(rs.getString("role")));
+                return user;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    public void updateRole(UUID userId, Role role) {
+
+        String sql = "UPDATE users SET role = ? WHERE id = ?";
+        try (
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        ) {
+            stmt.setString(1, role.name());
+            stmt.setObject(2, userId);
+
+            stmt.executeUpdate();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public List<User> findAll() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users";
+        try (
+            Connection conn = DBConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)
+        ) {
+            var rs = stmt.executeQuery();
+            while (rs.next()) {
+                User user = new User();
+                user.setId(UUID.fromString(rs.getString("id")));
+                user.setName(rs.getString("name"));
+                user.setEmail(rs.getString("email"));
+                user.setPassword(rs.getString("password"));
+                user.setRole(Role.valueOf(rs.getString("role")));
+                users.add(user);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return users;
+    }
+    public boolean emailExists(String email){
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, email);
+            var rs = stmt.executeQuery();
+            if (rs.next()) {
+                int count = rs.getInt(1);
+                return count > 0;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
 
 
@@ -1164,6 +1404,7 @@ package com.toutou.projetgla;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = {
         "api",
@@ -1173,6 +1414,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
         "services",
         "utilities"
 })
+@EnableScheduling
 public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -1887,367 +2129,6 @@ button:hover {
 }
 
 
-===== ./main/resources/static/login.html =====
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Connexion - TouTou</title>
-    <link rel="stylesheet" href="auth.css" />
-</head>
-<body>
-<div class="auth-page">
-    <div class="auth-overlay"></div>
-
-    <header class="auth-navbar">
-        <a href="index.html" class="auth-logo">
-            <img src="assets/logo.png" alt="TouTou Logo" />
-        </a>
-    </header>
-
-    <main class="auth-container">
-        <div class="auth-card">
-            <h1>Se connecter</h1>
-            <p class="auth-subtitle">
-                Connectez-vous pour consulter vos billets et gérer vos réservations.
-            </p>
-
-            <form class="auth-form" id="loginForm">
-                <div class="form-group">
-                    <label for="email">Adresse e-mail</label>
-                    <input type="email" id="email" name="email" placeholder="Votre e-mail" required />
-                </div>
-
-                <div class="form-group">
-                    <label for="password">Mot de passe</label>
-                    <input type="password" id="password" name="password" placeholder="Votre mot de passe" required />
-                </div>
-
-                <button type="submit" class="auth-btn">Se connecter</button>
-            </form>
-
-            <p class="auth-switch">
-                Vous n’avez pas encore de compte ?
-                <a href="register.html">S’inscrire</a>
-            </p>
-        </div>
-    </main>
-</div>
-    <script>
-
-document
-    .getElementById("loginForm")
-    .addEventListener("submit", async function(e) {
-
-        e.preventDefault();
-
-        const email =
-            document.getElementById("email").value;
-
-        const password =
-            document.getElementById("password").value;
-
-        const response = await fetch(
-            `/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
-            {
-                method: "POST"
-            }
-        );
-
-        if (response.ok) {
-            window.location.href = "index.html";
-        } else {
-            alert("Login failed");
-        }
-    });
-
-</script>
-</body>
-</html>
-
-
-===== ./main/resources/static/register.html =====
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inscription - TouTou</title>
-    <link rel="stylesheet" href="auth.css" />
-</head>
-<body>
-<div class="auth-page">
-    <div class="auth-overlay"></div>
-
-    <header class="auth-navbar">
-        <a href="index.html" class="auth-logo">
-            <img src="assets/logo.png" alt="TouTou Logo" />
-        </a>
-    </header>
-
-    <main class="auth-container">
-        <div class="auth-card">
-            <h1>S’inscrire</h1>
-            <p class="auth-subtitle">
-                Créez votre compte pour réserver et consulter vos billets de train.
-            </p>
-            <form class="auth-form" id="registerForm">
-                <div class="form-group">
-                    <label for="name">Nom complet</label>
-                    <input type="text" id="name" name="name" placeholder="Votre nom complet" required />
-                </div>
-
-                <div class="form-group">
-                    <label for="register-email">Adresse e-mail</label>
-                    <input type="email" id="register-email" name="email" placeholder="Votre e-mail" required />
-                </div>
-
-                <div class="form-group">
-                    <label for="register-password">Mot de passe</label>
-                    <input type="password" id="register-password" name="password" placeholder="Choisir un mot de passe" required />
-                </div>
-
-                <div class="form-group">
-                    <label for="confirm-password">Confirmer le mot de passe</label>
-                    <input type="password" id="confirm-password" name="confirmPassword" placeholder="Confirmer le mot de passe" required />
-                </div>
-
-                <button type="submit" class="auth-btn">Créer un compte</button>
-            </form>
-
-            <p class="auth-switch">
-                Vous avez déjà un compte ?
-                <a href="login.html">Se connecter</a>
-            </p>
-        </div>
-    </main>
-</div>
-        <script>
-
-document
-    .getElementById("registerForm")
-    .addEventListener("submit", async function(e) {
-
-        e.preventDefault();
-
-        const name =
-            document.getElementById("name").value;
-
-        const email =
-            document.getElementById("register-email").value;
-
-        const password =
-            document.getElementById("register-password").value;
-
-        const confirm =
-            document.getElementById("confirm-password").value;
-
-        if (password !== confirm) {
-            alert("Passwords do not match");
-            return;
-        }
-
-        const response = await fetch(
-            `/auth/register?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
-            {
-                method: "POST"
-            }
-        );
-
-        if (response.ok) {
-
-            alert("Account created");
-
-            window.location.href = "login.html";
-
-        } else {
-
-            alert("Registration failed");
-        }
-    });
-
-</script>
-</body>
-</html>
-
-
-===== ./main/resources/static/index.html =====
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TouTou - Accueil</title>
-    <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-<div class="page">
-    <div class="overlay"></div>
-
-    <header class="navbar">
-        <div class="logo">
-            <img src="assets/logo.png" alt="TouTou Logo" />
-        </div>
-        <nav class="menu" id="navbarMenu">
-
-    <a href="index.html">ACCUEIL</a>
-
-    <a href="mytickets.html">
-        MES BILLETS
-    </a>
-
-    <a href="scanner.html"
-       id="scannerLink"
-       style="display:none;">
-       SCANNER
-    </a>
-
-    <a href="admin.html"
-       id="adminLink"
-       style="display:none;">
-       ADMIN
-    </a>
-
-    <a href="login.html"
-       id="loginLink"
-       class="user-avatar">
-
-        <img src="assets/client.png" alt="Profil utilisateur" />
-    </a>
-
-</nav>
-    </header>
-
-    <main class="hero">
-        <section class="hero-text">
-            <h1>
-                <span class="small-title">Stop looking,</span><br />
-                <span class="big-title">Start booking !</span>
-            </h1>
-
-            <p>
-                Explorez notre site de réservation de billets de train captivant,
-                où chaque clic vous transporte vers une aventure ferroviaire inoubliable.
-            </p>
-
-            <form class="search-card" action="recherche.html" method="get">
-                <h2>Chercher votre trajet</h2>
-
-                <div class="row row-top">
-                    <input type="text" name="from" placeholder="De:" />
-                    <input type="text" name="to" placeholder="À:" />
-                </div>
-
-                <div class="row row-bottom">
-                    <div class="field-group">
-                        <label>Date de départ:</label>
-                        <input type="text" name="depart" placeholder="Aujourd'hui..." />
-                    </div>
-
-                    <div class="field-group">
-                        <label>Date de retour:</label>
-                        <input type="text" name="retour" placeholder="Choisir une date..." />
-                    </div>
-
-                    <div class="field-group small">
-                        <label>Passengers:</label>
-                        <input type="number" name="passengers" value="1" min="1" />
-                    </div>
-                </div>
-
-                <div class="search-btn-wrapper">
-                    <button type="submit">Chercher</button>
-                </div>
-            </form>
-        </section>
-    </main>
-</div>
-        <script>
-
-async function loadNavbar() {
-
-    try {
-
-        const response = await fetch("/me");
-
-        if (!response.ok) return;
-
-        const user = await response.json();
-
-        if (user.role === "CONDUCTOR" ||
-            user.role === "ADMIN") {
-
-            document
-                .getElementById("scannerLink")
-                .style.display = "inline-block";
-        }
-
-        if (user.role === "ADMIN") {
-
-            document
-                .getElementById("adminLink")
-                .style.display = "inline-block";
-        }
-
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-loadNavbar();
-
-</script>
-<script src="app.js"></script>
-</body>
-</html>
-
-
-===== ./main/resources/static/scanner.html =====
-<!DOCTYPE html>
-<html>
-<head>
-    <title>QR Scanner</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-</head>
-
-<body>
-
-<h1>Ticket Scanner</h1>
-
-<div id="reader" style="width:300px;"></div>
-<script>
-
-function onScanSuccess(decodedText) {
-
-    const ticketId = decodedText;
-
-    fetch(`/scan?ticketId=${ticketId}`, {
-        method: "POST"
-    })
-    .then(res => res.text())
-    .then(result => {
-        alert("Result: " + result);
-    })
-    .catch(err => {
-        alert("Error scanning ticket");
-        console.error(err);
-    });
-}
-
-const scanner = new Html5QrcodeScanner(
-    "reader",
-    { fps: 10, qrbox: 250 }
-);
-
-scanner.render(onScanSuccess);
-
-</script>
-<script src="app.js"></script>
-</body>
-</html>
-
-
 ===== ./main/resources/static/recherche.html =====
 <!DOCTYPE html>
 <html lang="fr">
@@ -2853,6 +2734,383 @@ async function loadTickets() {
 }
 
 loadTickets();
+
+</script>
+<script src="app.js"></script>
+</body>
+</html>
+
+
+===== ./main/resources/static/login.html =====
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connexion - TouTou</title>
+    <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-overlay"></div>
+
+    <header class="auth-navbar">
+        <a href="index.html" class="auth-logo">
+            <img src="assets/logo.png" alt="TouTou Logo" />
+        </a>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-card">
+            <h1>Se connecter</h1>
+            <p class="auth-subtitle">
+                Connectez-vous pour consulter vos billets et gérer vos réservations.
+            </p>
+
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="email">Adresse e-mail</label>
+                    <input type="email" id="email" name="email" placeholder="Votre e-mail" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" placeholder="Votre mot de passe" required />
+                </div>
+
+                <button type="submit" class="auth-btn">Se connecter</button>
+            </form>
+
+            <p class="auth-switch">
+                Vous n’avez pas encore de compte ?
+                <a href="register.html">S’inscrire</a>
+            </p>
+        </div>
+    </main>
+</div>
+    <script>
+
+document
+    .getElementById("loginForm")
+    .addEventListener("submit", async function(e) {
+
+        e.preventDefault();
+
+        const email =
+            document.getElementById("email").value;
+
+        const password =
+            document.getElementById("password").value;
+
+        const response = await fetch("/auth/login", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        email,
+        password
+    })
+});
+        if (response.ok) {
+            window.location.href = "index.html";
+        } else {
+            alert("Login failed");
+        }
+    });
+
+</script>
+</body>
+</html>
+
+
+===== ./main/resources/static/register.html =====
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inscription - TouTou</title>
+    <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-overlay"></div>
+
+    <header class="auth-navbar">
+        <a href="index.html" class="auth-logo">
+            <img src="assets/logo.png" alt="TouTou Logo" />
+        </a>
+    </header>
+
+    <main class="auth-container">
+        <div class="auth-card">
+            <h1>S’inscrire</h1>
+            <p class="auth-subtitle">
+                Créez votre compte pour réserver et consulter vos billets de train.
+            </p>
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="name">Nom complet</label>
+                    <input type="text" id="name" name="name" placeholder="Votre nom complet" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="register-email">Adresse e-mail</label>
+                    <input type="email" id="register-email" name="email" placeholder="Votre e-mail" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="register-password">Mot de passe</label>
+                    <input type="password" id="register-password" name="password" placeholder="Choisir un mot de passe" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirmer le mot de passe</label>
+                    <input type="password" id="confirm-password" name="confirmPassword" placeholder="Confirmer le mot de passe" required />
+                </div>
+
+                <button type="submit" class="auth-btn">Créer un compte</button>
+            </form>
+
+            <p class="auth-switch">
+                Vous avez déjà un compte ?
+                <a href="login.html">Se connecter</a>
+            </p>
+        </div>
+    </main>
+</div>
+        <script>
+
+document
+    .getElementById("registerForm")
+    .addEventListener("submit", async function(e) {
+
+        e.preventDefault();
+
+        const name =
+            document.getElementById("name").value;
+
+        const email =
+            document.getElementById("register-email").value;
+
+        const password =
+            document.getElementById("register-password").value;
+
+        const confirm =
+            document.getElementById("confirm-password").value;
+
+        if (password !== confirm) {
+            alert("Passwords do not match");
+            return;
+        }
+
+        const response = await fetch("/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                password
+            })
+        });
+        if (response.ok) {
+
+            alert("Account created");
+
+            window.location.href = "login.html";
+
+        } else {
+
+            alert("Registration failed");
+        }
+    });
+
+</script>
+</body>
+</html>
+
+
+===== ./main/resources/static/scanner.html =====
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+
+<body>
+
+<h1>Ticket Scanner</h1>
+
+<div id="reader" style="width:300px;"></div>
+<script>
+
+function onScanSuccess(decodedText) {
+
+    const parts = decodedText.split(":");
+
+    if (parts.length !== 2) {
+        alert("Invalid QR");
+        return;
+    }
+
+    const ticketId = parts[0];
+    const userId = parts[1];
+    fetch(`/scan?ticketId=${ticketId}&userId=${userId}`, {
+        method: "POST"
+    })
+    .then(res => res.text())
+    .then(result => {
+        alert("Result: " + result);
+    })
+    .catch(err => {
+        alert("Error scanning ticket");
+        console.error(err);
+    });
+}
+
+const scanner = new Html5QrcodeScanner(
+    "reader",
+    { fps: 10, qrbox: 250 }
+);
+
+scanner.render(onScanSuccess);
+
+</script>
+<script src="app.js"></script>
+</body>
+</html>
+
+
+===== ./main/resources/static/index.html =====
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TouTou - Accueil</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="page">
+    <div class="overlay"></div>
+
+    <header class="navbar">
+        <div class="logo">
+            <img src="assets/logo.png" alt="TouTou Logo" />
+        </div>
+        <nav class="menu" id="navbarMenu">
+
+    <a href="index.html">ACCUEIL</a>
+
+    <a href="mytickets.html">
+        MES BILLETS
+    </a>
+
+    <a href="scanner.html"
+       id="scannerLink"
+       style="display:none;">
+       SCANNER
+    </a>
+
+    <a href="admin.html"
+       id="adminLink"
+       style="display:none;">
+       ADMIN
+    </a>
+
+    <a href="login.html"
+       id="loginLink"
+       class="user-avatar">
+
+        <img src="assets/client.png" alt="Profil utilisateur" />
+    </a>
+    <button onclick="logout()" id="logoutBtn">
+        LOGOUT
+    </button>
+</nav>
+    </header>
+
+    <main class="hero">
+        <section class="hero-text">
+            <h1>
+                <span class="small-title">Stop looking,</span><br />
+                <span class="big-title">Start booking !</span>
+            </h1>
+
+            <p>
+                Explorez notre site de réservation de billets de train captivant,
+                où chaque clic vous transporte vers une aventure ferroviaire inoubliable.
+            </p>
+
+            <form class="search-card" action="recherche.html" method="get">
+                <h2>Chercher votre trajet</h2>
+
+                <div class="row row-top">
+                    <input type="text" name="from" placeholder="De:" />
+                    <input type="text" name="to" placeholder="À:" />
+                </div>
+
+                <div class="row row-bottom">
+                    <div class="field-group">
+                        <label>Date de départ:</label>
+                        <input type="text" name="depart" placeholder="Aujourd'hui..." />
+                    </div>
+
+                    <div class="field-group">
+                        <label>Date de retour:</label>
+                        <input type="text" name="retour" placeholder="Choisir une date..." />
+                    </div>
+
+                    <div class="field-group small">
+                        <label>Passengers:</label>
+                        <input type="number" name="passengers" value="1" min="1" />
+                    </div>
+                </div>
+
+                <div class="search-btn-wrapper">
+                    <button type="submit">Chercher</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+        <script>
+
+async function loadNavbar() {
+
+    try {
+
+        const response = await fetch("/me");
+
+        if (!response.ok) return;
+
+        const user = await response.json();
+
+        if (user.role === "CONDUCTOR" ||
+            user.role === "ADMIN") {
+
+            document
+                .getElementById("scannerLink")
+                .style.display = "inline-block";
+        }
+
+        if (user.role === "ADMIN") {
+
+            document
+                .getElementById("adminLink")
+                .style.display = "inline-block";
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+loadNavbar();
 
 </script>
 <script src="app.js"></script>

@@ -12,7 +12,8 @@ public class Trip {
     private Date departureTime;
     private Date arrivalTime;
 
-    public Trip() {}
+    public Trip() {
+    }
 
     public Trip(UUID id, String departure, String destination, int price, Date departureTime, Date arrivalTime) {
         this.id = id;
@@ -23,10 +24,27 @@ public class Trip {
         this.arrivalTime = arrivalTime;
     }
 
-    public UUID getId() { return id; }
-    public String getDeparture() { return departure; }
-    public String getDestination() { return destination; }
-    public int getPrice() { return price; }
-    public Date getDepartureTime() { return departureTime; }
-    public Date getArrivalTime() { return arrivalTime; }
+    public UUID getId() {
+        return id;
+    }
+
+    public String getDeparture() {
+        return departure;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    public Date getDepartureTime() {
+        return departureTime;
+    }
+
+    public Date getArrivalTime() {
+        return arrivalTime;
+    }
 }

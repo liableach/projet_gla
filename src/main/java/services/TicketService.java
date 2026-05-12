@@ -35,7 +35,8 @@ public class TicketService {
         );
 	    ticketDAO.save(t);
         String path = System.getProperty("user.dir") + "/qrs/" + t.getId_t() + ".png";
-        QR.saveQR(t.getId_t(), path);
+        String qrContent = t.getId_t() + ":" + t.getId_u();
+        QR.saveQR(qrContent, path);
         File qrFile = new File("qrs/" + t.getId_t() + ".png");
         emailService.sendTicketQR(email, qrFile, t.getId_t().toString());
 

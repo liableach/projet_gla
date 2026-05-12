@@ -78,13 +78,17 @@ document
             return;
         }
 
-        const response = await fetch(
-            `/auth/register?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
-            {
-                method: "POST"
-            }
-        );
-
+        const response = await fetch("/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                password
+            })
+        });
         if (response.ok) {
 
             alert("Account created");

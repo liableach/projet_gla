@@ -40,7 +40,9 @@
 
         <img src="assets/client.png" alt="Profil utilisateur" />
     </a>
-
+    <button onclick="logout()" id="logoutBtn">
+        LOGOUT
+    </button>
 </nav>
     </header>
 
@@ -67,12 +69,12 @@
                 <div class="row row-bottom">
                     <div class="field-group">
                         <label>Date de départ:</label>
-                        <input type="text" name="depart" placeholder="Aujourd'hui..." />
+                        <input type="date" name="depart" placeholder="Aujourd'hui..." />
                     </div>
 
                     <div class="field-group">
                         <label>Date de retour:</label>
-                        <input type="text" name="retour" placeholder="Choisir une date..." />
+                        <input type="date" name="retour" placeholder="Choisir une date..." />
                     </div>
 
                     <div class="field-group small">
@@ -88,41 +90,6 @@
         </section>
     </main>
 </div>
-        <script>
-
-async function loadNavbar() {
-
-    try {
-
-        const response = await fetch("/me");
-
-        if (!response.ok) return;
-
-        const user = await response.json();
-
-        if (user.role === "CONDUCTOR" ||
-            user.role === "ADMIN") {
-
-            document
-                .getElementById("scannerLink")
-                .style.display = "inline-block";
-        }
-
-        if (user.role === "ADMIN") {
-
-            document
-                .getElementById("adminLink")
-                .style.display = "inline-block";
-        }
-
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-loadNavbar();
-
-</script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -49,6 +49,7 @@
 </div>
 
 <script>
+requireAuth();
 async function loadTickets() {
 
     const response = await fetch("/tickets");
