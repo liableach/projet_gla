@@ -14,7 +14,7 @@ public class AuthentificationService {
 
     public AuthentificationService(UserDAO userDAO, EmailService emailService) {
         this.userDAO = userDAO;
-        this.emailService = new EmailService();
+        this.emailService = emailService;
     }
 
     public void register(String name, String email, String password) {
