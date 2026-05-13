@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Scanner de billets</title>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -226,8 +227,164 @@
         }
 
         @media (max-width: 900px) {
+            .scanner-main {
+                padding: 18px 16px 28px;
+            }
+
             .scanner-layout {
                 grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .camera-panel,
+            .result-panel {
+                width: 100%;
+            }
+
+            .result-panel {
+                min-height: auto;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .scanner-header {
+                height: 64px;
+                padding: 0 14px;
+            }
+
+            .scanner-header .left {
+                gap: 10px;
+            }
+
+            .back-link {
+                font-size: 20px;
+            }
+
+            .scanner-title {
+                font-size: 16px;
+            }
+
+            .scanner-role {
+                font-size: 12px;
+            }
+
+            .scanner-main {
+                padding: 14px 12px 22px;
+            }
+
+            .panel {
+                border-radius: 16px;
+            }
+
+            .camera-panel,
+            .result-panel {
+                padding: 14px;
+            }
+
+            .camera-panel h2,
+            .result-panel h2 {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+
+            .camera-subtitle {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+
+            .status-bar {
+                margin-top: 12px;
+                padding: 10px 12px;
+                font-size: 13px;
+                border-radius: 10px;
+            }
+
+            .result-placeholder {
+                font-size: 14px;
+                padding: 12px 0;
+            }
+
+            .result-card {
+                padding: 16px;
+                border-radius: 14px;
+            }
+
+            .result-title {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+
+            .result-item {
+                padding: 10px;
+            }
+
+            .result-item .label {
+                font-size: 11px;
+            }
+
+            .result-item .value {
+                font-size: 14px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 11px 14px;
+                font-size: 13px;
+            }
+
+            /* scanner block trên - kết quả block dưới rõ ràng hơn */
+            .camera-panel {
+                order: 1;
+            }
+
+            .result-panel {
+                order: 2;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .scanner-main {
+                padding: 12px 10px 18px;
+            }
+
+            .camera-panel,
+            .result-panel {
+                padding: 12px;
+            }
+
+            .scanner-title {
+                font-size: 15px;
+            }
+
+            .scanner-role {
+                font-size: 11px;
+            }
+
+            .camera-panel h2,
+            .result-panel h2 {
+                font-size: 17px;
+            }
+
+            .camera-subtitle,
+            .result-placeholder,
+            .status-bar {
+                font-size: 12px;
+            }
+
+            .result-title {
+                font-size: 16px;
             }
         }
     </style>
@@ -269,73 +426,103 @@
     </main>
 </div>
 
+<div class="modal-overlay" id="resultModal">
+    <div class="modal">
+        <button class="close-modal" onclick="closeModal()">×</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
 <script>
     let scannerInstance = null;
     let scanLocked = false;
+
+    function isMobileView() {
+        return window.innerWidth <= 900;
+    }
 
     function setStatus(message) {
         document.getElementById("scanStatus").textContent = message;
     }
 
+    function openModal(content) {
+        document.getElementById("modalContent").innerHTML = content;
+        document.getElementById("resultModal").classList.add("show");
+    }
+
+    function closeModal() {
+        document.getElementById("resultModal").classList.remove("show");
+    }
+
     function renderSuccess(data) {
-        const resultArea = document.getElementById("resultArea");
+        const content = `
+            <div class="result-card result-success">
+                <div class="result-title">Billet valide</div>
+                <p>Le billet a été contrôlé avec succès.</p>
 
-        resultArea.innerHTML = `
-        <div class="result-card result-success">
-            <div class="result-title">Billet valide</div>
-            <p>Le billet a été contrôlé avec succès.</p>
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="label">Ticket ID</div>
+                        <div class="value">${data.ticketId ?? "-"}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">User ID</div>
+                        <div class="value">${data.userId ?? "-"}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">Résultat</div>
+                        <div class="value">${data.result ?? "VALID"}</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">Message</div>
+                        <div class="value">${data.message ?? "Billet reconnu par le système"}</div>
+                    </div>
+                </div>
 
-            <div class="result-grid">
-                <div class="result-item">
-                    <div class="label">Ticket ID</div>
-                    <div class="value">${data.ticketId ?? "-"}</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">User ID</div>
-                    <div class="value">${data.userId ?? "-"}</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Résultat</div>
-                    <div class="value">${data.result ?? "VALID"}</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Message</div>
-                    <div class="value">${data.message ?? "Billet reconnu par le système"}</div>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="restartScanner()">Scanner à nouveau</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='mytickets.html'">Voir les billets</button>
                 </div>
             </div>
+        `;
 
-            <div class="actions">
-                <button class="btn btn-primary" onclick="restartScanner()">Scanner à nouveau</button>
-                <button class="btn btn-secondary" onclick="window.location.href='mytickets.html'">Voir les billets</button>
-            </div>
-        </div>
-    `;
+        if (isMobileView()) {
+            openModal(content);
+        } else {
+            document.getElementById("resultArea").innerHTML = content;
+        }
     }
 
     function renderError(title, message) {
-        const resultArea = document.getElementById("resultArea");
+        const content = `
+            <div class="result-card result-error">
+                <div class="result-title">${title}</div>
+                <p>${message}</p>
 
-        resultArea.innerHTML = `
-        <div class="result-card result-error">
-            <div class="result-title">${title}</div>
-            <p>${message}</p>
-
-            <div class="actions">
-                <button class="btn btn-primary" onclick="restartScanner()">Réessayer</button>
-                <button class="btn btn-secondary">Reporter</button>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="restartScanner()">Réessayer</button>
+                    <button class="btn btn-secondary" onclick="${isMobileView() ? 'closeModal()' : 'void(0)'}">Fermer</button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+
+        if (isMobileView()) {
+            openModal(content);
+        } else {
+            document.getElementById("resultArea").innerHTML = content;
+        }
     }
 
     async function restartScanner() {
         scanLocked = false;
         setStatus("Scanner prêt. Présentez un billet.");
+        closeModal();
+
         document.getElementById("resultArea").innerHTML = `
-        <div class="result-placeholder">
-            Aucun billet scanné pour le moment. Le résultat du contrôle s’affichera ici après la lecture d’un QR code.
-        </div>
-    `;
+            <div class="result-placeholder">
+                Aucun billet scanné pour le moment. Le résultat du contrôle s’affichera ici après la lecture d’un QR code.
+            </div>
+        `;
     }
 
     async function initScanner() {
@@ -403,7 +590,10 @@
                     })
                     .catch(err => {
                         console.error(err);
-                        renderError("Billet invalide / inexistant", err.message || "Erreur lors du contrôle du billet.");
+                        renderError(
+                            "Billet invalide / inexistant",
+                            err.message || "Erreur lors du contrôle du billet."
+                        );
                         setStatus("Le contrôle a échoué.");
                     });
             }

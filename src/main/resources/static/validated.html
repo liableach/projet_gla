@@ -3,115 +3,207 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Billet validé - TouTou</title>
+    <title>Réservation confirmée - TouTou</title>
     <link rel="stylesheet" href="validated.css" />
 </head>
 <body>
-<!-- HEADER -->
-<header class="navbar">
-    <div class="logo">
-        <a href="index.html">
-            <img src="../images/ui/logo.png" alt="TouTou Logo" />
+<div class="validated-page">
+
+    <header class="topbar">
+        <a href="index.html" class="logo">
+            <img src="assets/logo.png" alt="TouTou Logo" />
         </a>
-    </div>
 
-    <nav class="nav-links">
-        <a href="show.html">Mes billets</a>
-        <a href="login.html" class="signup-link">Se connecter/S’inscrire</a>
-    </nav>
-</header>
+        <nav class="menu">
+            <a href="index.html">ACCUEIL</a>
+            <a href="mytickets.html">MES BILLETS</a>
 
-<div class="separator"></div>
+            <a href="scanner.html" id="scannerLink" style="display:none;">
+                SCANNER
+            </a>
 
-<!-- MAIN -->
-<main class="validated-page">
-    <!-- icône succès -->
-    <div class="success-icon">
-        <span>✓</span>
-    </div>
+            <a href="admin.html" id="adminLink" style="display:none;">
+                ADMIN
+            </a>
 
-    <h1>Félicitations ! Vous avez réservé vos billets avec succès</h1>
-    <p class="subtitle">
-        Veuillez emporter votre ERS / VRM / SMS / e-mail envoyé à vos coordonnées, ainsi qu’une pièce d’identité valide lors de votre voyage.
-    </p>
+            <a href="login.html" class="user-avatar" id="loginLink">
+                <img src="assets/client.png" alt="Profil utilisateur" />
+            </a>
+        </nav>
+    </header>
 
-    <section class="validated-content">
-        <!-- bloc infos billet -->
-        <div class="ticket-card">
-            <div class="ticket-top-row">
-                <p><strong>PNR No:</strong> 1234567890</p>
-                <p><strong>ID de transaction :</strong> 35151859256378</p>
-            </div>
+    <div class="separator"></div>
 
-            <h2>12430 - NDLS LKO AC SF</h2>
+    <main class="validated-main">
+        <div class="success-icon">
+            <span>✓</span>
+        </div>
 
-            <div class="trip-line-section">
-                <div class="trip-side left">
-                    <p class="date">Nov 16</p>
-                    <p class="time">11:25 pm</p>
-                    <p class="station">NDLS, New Delhi</p>
-                </div>
+        <h1>Félicitations ! Votre réservation a bien été confirmée</h1>
+        <p class="subtitle">
+            Votre billet a été enregistré avec succès. Vous pouvez consulter ses détails ci-dessous ou le retrouver plus tard dans la rubrique « Mes billets ».
+        </p>
 
-                <div class="trip-line">
-                    <div class="line"></div>
-                </div>
+        <div id="messageBox" class="message-box hidden"></div>
 
-                <div class="trip-side right">
-                    <p class="date">Nov 17</p>
-                    <p class="time">7:25 am</p>
-                    <p class="station">LKO, Lucknow</p>
-                </div>
-            </div>
+        <section class="validated-content">
 
-            <div class="ticket-middle">
-                <div class="left-info">
-                    <p class="section-title">Les e-billets ont été envoyés à :</p>
+            <div class="ticket-card">
+                <div class="ticket-header">
+                    <div>
+                        <p class="small-label">Statut</p>
+                        <h2 id="ticketStatus">Confirmé</h2>
+                    </div>
 
-                    <div class="traveller-block">
-                        <h3>Détails du voyageur</h3>
-                        <p>John Woodspear</p>
-                        <p>Age : 24 Yrs</p>
-                        <p>Gender : Male</p>
+                    <div class="status-badge" id="statusBadge">
+                        VALIDÉ
                     </div>
                 </div>
 
-                <div class="right-info">
-                    <p>John Woodspear (Primary)</p>
-                    <p>John Woodspear@gmail.com</p>
+                <div class="trip-title" id="tripTitle">
+                    Trajet réservé
+                </div>
 
-                    <div class="reservation-status">
-                        <p>Statut de réservation : Confirmé (CNF)</p>
-                        <p>Siège/Wagon n° : 44 (couchette inférieure), A1</p>
+                <div class="trip-line-section">
+                    <div class="trip-side left">
+                        <p class="date" id="departureDate">-</p>
+                        <p class="time" id="departureTime">-</p>
+                        <p class="station" id="departureStation">-</p>
                     </div>
+
+                    <div class="trip-line">
+                        <div class="line"></div>
+                    </div>
+
+                    <div class="trip-side right">
+                        <p class="date" id="arrivalDate">-</p>
+                        <p class="time" id="arrivalTime">-</p>
+                        <p class="station" id="arrivalStation">-</p>
+                    </div>
+                </div>
+
+                <div class="ticket-middle">
+                    <div class="info-column">
+                        <p class="section-title">Voyageur</p>
+                        <p id="travellerName">-</p>
+                    </div>
+
+                    <div class="info-column">
+                        <p class="section-title">Contact</p>
+                        <p id="travellerEmail">-</p>
+                    </div>
+                </div>
+
+                <div class="ticket-bottom">
+                    <p class="total-label">Tarif total</p>
+                    <p class="total-price" id="totalPrice">0€</p>
                 </div>
             </div>
 
-            <div class="ticket-bottom">
-                <p class="total-label">Tarif total</p>
-                <p class="total-price">$3500.00</p>
-            </div>
-        </div>
+            <div class="qr-panel">
+                <div class="qr-box">
+                    <img id="qrImage" src="assets/qr-placeholder.png" alt="QR Code du billet" />
+                </div>
 
-        <!-- bloc QR + actions -->
-        <div class="qr-panel">
-            <div class="qr-box">
-                <img src="../qrs/09db361b-32b3-4a35-b631-ef1e2a536671.png" alt="QR Code" />
-            </div>
+                <p class="qr-text">
+                    Présentez ce QR code lors du contrôle pour permettre la validation du billet.
+                </p>
 
-            <p class="qr-text">
-                Scannez le code pour l’afficher sur n’importe quel appareil
-            </p>
+                <div class="action-buttons">
+                    <button class="btn btn-outline" onclick="goToMyTickets()">
+                        Voir mes billets
+                    </button>
 
-            <div class="action-buttons">
-                <button class="btn btn-outline">Imprimer le billet (anglais)</button>
-                <button class="btn btn-outline">Imprimer le billet (français)</button>
-                <button class="btn btn-primary" onclick="window.location.href='index.html'">
-                    Réserver un autre billet
-                </button>
-                <button class="btn btn-primary">Télécharger le billet</button>
+                    <button class="btn btn-primary" onclick="window.location.href='index.html'">
+                        Réserver un autre billet
+                    </button>
+                </div>
             </div>
-        </div>
-    </section>
-</main>
+        </section>
+    </main>
+</div>
+
+<script>
+    function showMessage(message, type = "info") {
+        const box = document.getElementById("messageBox");
+        box.textContent = message;
+        box.className = `message-box ${type}`;
+        box.classList.remove("hidden");
+
+        setTimeout(() => {
+            box.classList.add("hidden");
+        }, 3000);
+    }
+
+    function formatDateLabel(value) {
+        if (!value) return "-";
+        const d = new Date(Number(value) || value);
+        if (isNaN(d.getTime())) return "-";
+        return d.toLocaleDateString("fr-FR", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+    }
+
+    function formatTimeLabel(value) {
+        if (!value) return "-";
+        const d = new Date(Number(value) || value);
+        if (isNaN(d.getTime())) return "-";
+        return d.toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function goToMyTickets() {
+        window.location.href = "mytickets.html";
+    }
+
+    function loadValidatedData() {
+        const dataRaw = sessionStorage.getItem("lastReservation");
+
+        if (!dataRaw) {
+            showMessage("Aucune donnée de réservation récente n’a été trouvée.", "error");
+            return;
+        }
+
+        let data;
+        try {
+            data = JSON.parse(dataRaw);
+        } catch (e) {
+            console.error(e);
+            showMessage("Impossible de lire les données de réservation.", "error");
+            return;
+        }
+
+        document.getElementById("ticketStatus").textContent = data.statusLabel || "Confirmé";
+        document.getElementById("statusBadge").textContent = data.ticketState || "VALID";
+
+        document.getElementById("tripTitle").textContent =
+            `${data.departure || "-"} → ${data.destination || "-"}`;
+
+        document.getElementById("departureDate").textContent = formatDateLabel(data.departureTime);
+        document.getElementById("departureTime").textContent = formatTimeLabel(data.departureTime);
+        document.getElementById("departureStation").textContent = data.departure || "-";
+
+        document.getElementById("arrivalDate").textContent = formatDateLabel(data.arrivalTime);
+        document.getElementById("arrivalTime").textContent = formatTimeLabel(data.arrivalTime);
+        document.getElementById("arrivalStation").textContent = data.destination || "-";
+
+        document.getElementById("travellerName").textContent = data.fullName || "Voyageur principal";
+        document.getElementById("travellerEmail").textContent = data.email || "Email non renseigné";
+
+        document.getElementById("totalPrice").textContent = `${data.totalPrice || 0}€`;
+
+        if (data.qrPath) {
+            document.getElementById("qrImage").src = data.qrPath;
+        }
+    }
+
+    loadValidatedData();
+</script>
+
+<script src="app.js"></script>
 </body>
 </html>

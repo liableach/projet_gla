@@ -276,37 +276,57 @@
         }
 
         return true;
-    }
+        async function confirmPurchase() {
+            if (!validateForm()) return;
 
-    async function confirmPurchase() {
-        if (!validateForm()) return;
+            const payBtn = document.getElementById("payBtn");
+            payBtn.disabled = true;
+            payBtn.textContent = "Redirection...";
 
-        const payBtn = document.getElementById("payBtn");
-        payBtn.disabled = true;
-        payBtn.textContent = "Paiement en cours...";
+            try {
+                const numericPrice = Number(price || 0);
+                const fees = 0;
+                const total = numericPrice + fees;
 
-        try {
-            const res = await fetch(`/tickets/buy?tripId=${encodeURIComponent(tripId)}`, {
-                method: "POST"
-            });
+                const reservationData = {
+                    tripId: tripId,
+                    departure: departure || "-",
+                    destination: destination || "-",
+                    departureTime: departureTimeRaw,
+                    arrivalTime: arrivalTimeRaw,
+                    rank: rank || "Classe standard",
+                    fullName: document.getElementById("fullName").value.trim(),
+                    birthdate: document.getElementById("birthdate").value,
+                    gender: document.getElementById("gender").value,
+                    nationality: document.getElementById("nationality").value.trim(),
+                    phone: document.getElementById("phone").value.trim(),
+                    email: document.getElementById("email").value.trim(),
+                    totalPrice: total,
+                    basePrice: numericPrice,
+                    fees: fees,
+                    ticketState: "VALID",
+                    statusLabel: "Confirmé",
+                    qrPath: "assets/qr-placeholder.png"
+                };
 
-            if (!res.ok) {
-                throw new Error("Échec de l’achat du billet");
+                sessionStorage.setItem("lastReservation", JSON.stringify(reservationData));
+
+                showMessage("Redirection vers la page de confirmation...", "success");
+
+                setTimeout(() => {
+                    window.location.href = "validated.html";
+                }, 500);
+
+            } catch (err) {
+                console.error(err);
+                showMessage("Erreur lors de la redirection.", "error");
+            } finally {
+                payBtn.disabled = false;
+                payBtn.textContent = "Payer";
             }
-
-            showMessage("Billet acheté avec succès.", "success");
-
-            setTimeout(() => {
-                window.location.href = "validated.html";
-            }, 800);
-
-        } catch (err) {
-            console.error(err);
-            showMessage(err.message || "Erreur lors du paiement.", "error");
-        } finally {
-            payBtn.disabled = false;
-            payBtn.textContent = "Payer";
         }
+
+
     }
 
     fillTripSummary();

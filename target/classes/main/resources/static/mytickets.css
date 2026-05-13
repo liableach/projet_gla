@@ -1,0 +1,300 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #f7f9fb;
+    color: #1f2937;
+}
+
+.tickets-page {
+    min-height: 100vh;
+}
+
+/* HEADER */
+.topbar {
+    height: 88px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 50px;
+    background: #ffffff;
+}
+
+.logo img {
+    height: 52px;
+    object-fit: contain;
+}
+
+.menu {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.menu a.active-link {
+    color: #38bdf8;
+    font-weight: 700;
+}
+
+.user-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(56, 189, 248, 0.25);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.separator {
+    height: 1px;
+    background: #e5e7eb;
+}
+
+/* MAIN */
+.tickets-main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 24px 50px;
+}
+
+.page-header {
+    margin-bottom: 22px;
+}
+
+.page-header h1 {
+    font-size: 34px;
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    color: #6b7280;
+    font-size: 15px;
+}
+
+.tickets-summary {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 18px;
+}
+
+/* LIST */
+.trains-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.train-card {
+    background: white;
+    border: 1px solid #e5eef5;
+    border-radius: 20px;
+    padding: 22px 22px 18px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.05);
+    transition: 0.2s ease;
+}
+
+.train-card:hover {
+    transform: translateY(-2px);
+    border-color: #b6e7fa;
+}
+
+.ticket-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.ticket-route {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 6px;
+}
+
+.ticket-subtitle {
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.status-badge {
+    padding: 8px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-valid {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-used {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-expired {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.status-created {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-default {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.train-route-block {
+    display: grid;
+    grid-template-columns: 180px 1fr 180px;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.route-left,
+.route-right {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+    color: #374151;
+}
+
+.route-right {
+    text-align: right;
+}
+
+.route-line {
+    height: 2px;
+    background: #c8ced4;
+    position: relative;
+}
+
+.route-line::before,
+.route-line::after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9aa3ab;
+    position: absolute;
+    top: -3px;
+}
+
+.route-line::before {
+    left: 0;
+}
+
+.route-line::after {
+    right: 0;
+}
+
+.ticket-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.price-block span {
+    display: block;
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 6px;
+}
+
+.price-block strong {
+    font-size: 34px;
+    color: #111827;
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.ticket-meta span {
+    display: block;
+    font-size: 12px;
+    color: #9ca3af;
+    margin-bottom: 4px;
+}
+
+.ticket-meta p {
+    font-size: 15px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.empty-state {
+    background: white;
+    border: 1px solid #e5eef5;
+    border-radius: 20px;
+    padding: 50px 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.empty-state h3 {
+    font-size: 22px;
+    color: #374151;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 900px) {
+    .topbar {
+        padding: 0 18px;
+    }
+
+    .tickets-main {
+        padding: 24px 14px 40px;
+    }
+
+    .ticket-route {
+        font-size: 20px;
+    }
+
+    .train-route-block {
+        grid-template-columns: 1fr;
+    }
+
+    .route-right {
+        text-align: left;
+    }
+
+    .ticket-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
