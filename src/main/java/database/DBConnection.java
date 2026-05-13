@@ -10,23 +10,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class DBConnection {
 
-    private static String url;
-    private static String user;
-    private static String password;
+    private final String url;
+    private final String user;
+    private final String password;
 
     public DBConnection(
             @Value("${spring.datasource.url}") String url,
             @Value("${spring.datasource.username}") String user,
             @Value("${spring.datasource.password}") String password) {
-        DBConnection.url = url;
-        DBConnection.user = user;
-        DBConnection.password = password;
+        this.url = url;
+        this.user = user;
+        this.password = password;
     }
 
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(
-                url,
-                user,
-                password);
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, user, password);
     }
 }

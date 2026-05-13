@@ -12,6 +12,12 @@ import objects.Trip;
 @Repository
 public class TripDAO {
 
+    private final DBConnection dbConnection;
+
+    public TripDAO(DBConnection dbConnection) {
+        this.dbConnection = dbConnection;
+    }
+
     public void createTrip(Trip t) {
 
         String sql = """
@@ -19,7 +25,7 @@ public class TripDAO {
                     VALUES (?, ?, ?, ?, ?, ?)
                 """;
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             UUID id = (t.getId() != null) ? t.getId() : UUID.randomUUID();
@@ -44,7 +50,7 @@ public class TripDAO {
         String sql = "SELECT * FROM trips WHERE id = ?";
 
         try (
-                Connection conn = DBConnection.getConnection();
+                Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setObject(1, id);
@@ -80,7 +86,7 @@ public class TripDAO {
                 """;
 
         try (
-                Connection conn = DBConnection.getConnection();
+                Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, "%" + departure + "%");

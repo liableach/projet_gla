@@ -35,22 +35,23 @@ public class ScanController {
                 user.getRole() != Role.ADMIN) {
             return ResponseEntity.status(403).body("FORBIDDEN");
         }
-
-        ValidationResult result = validationService.validateTicket(ticketId, user.getId());
-
         Ticket ticket = validationService.getTicket(ticketId);
-
+        
         if (ticket == null) {
             return ResponseEntity.badRequest()
-                    .body("INVALID");
+            .body("INVALID");
         }
 
-        if (!ticket.getId_u().equals(userId)) {
+        if (ticket.getId_u() == null || !ticket.getId_u().equals(userId)) {
             ticket.setState(TicketState.FRAUD_SUSPECTED);
             validationService.update(ticket);
             return ResponseEntity.badRequest()
-                    .body("FRAUD DETECTED");
+            .body("FRAUD DETECTED");
         }
+
+        ValidationResult result = validationService.validateTicket(ticketId, user.getId());
+        
+        ticket = validationService.getTicket(ticketId);
 
         return switch (result) {
 

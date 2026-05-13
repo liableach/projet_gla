@@ -14,6 +14,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TicketDAO {
 
+    private final DBConnection dbConnection;
+
+    public TicketDAO(DBConnection dbConnection) {
+        this.dbConnection = dbConnection;
+    }
+
     public void save(Ticket t) {
         String sql = """
                 INSERT INTO tickets (
@@ -23,7 +29,7 @@ public class TicketDAO {
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setObject(1, t.getId_t());
@@ -46,7 +52,7 @@ public class TicketDAO {
         List<Ticket> tickets = new ArrayList<>();
         String sql = "SELECT * FROM tickets WHERE id_u = ?";
         try (
-                Connection conn = DBConnection.getConnection();
+                Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setObject(1, userId);
             var rs = stmt.executeQuery();
@@ -79,7 +85,7 @@ public class TicketDAO {
 
         String sql = "SELECT * FROM tickets WHERE id_t = ?";
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setObject(1, ticketId);
@@ -118,7 +124,7 @@ public class TicketDAO {
                     WHERE id_t = ?
                 """;
 
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, t.getState().name());
@@ -152,7 +158,7 @@ public class TicketDAO {
                 """;
 
         try (
-                Connection conn = DBConnection.getConnection();
+                Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             var rs = stmt.executeQuery();

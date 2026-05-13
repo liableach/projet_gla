@@ -13,9 +13,16 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class UserDAO {
+
+    private final DBConnection dbConnection;
+
+    public UserDAO(DBConnection dbConnection) {
+        this.dbConnection = dbConnection;
+    }
+
     public void createUser(String name, String email, String hashedPassword, Role role) {
         String sql = "INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setObject(1, java.util.UUID.randomUUID());
             stmt.setString(2, name);
@@ -31,7 +38,7 @@ public class UserDAO {
 
     public User findById(UUID id) {
         String sql = "SELECT * FROM users WHERE id = ?";
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setObject(1, id);
@@ -53,7 +60,7 @@ public class UserDAO {
 
     public User findByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setString(1, email);
@@ -77,7 +84,7 @@ public class UserDAO {
 
         String sql = "UPDATE users SET role = ? WHERE id = ?";
         try (
-                Connection conn = DBConnection.getConnection();
+                Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, role.name());
             stmt.setObject(2, userId);
@@ -93,7 +100,7 @@ public class UserDAO {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users";
         try (
-                Connection conn = DBConnection.getConnection();
+                Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             var rs = stmt.executeQuery();
             while (rs.next()) {
@@ -113,7 +120,7 @@ public class UserDAO {
 
     public boolean emailExists(String email) {
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
-        try (Connection conn = DBConnection.getConnection();
+        try (Connection conn = dbConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, email);
             var rs = stmt.executeQuery();
