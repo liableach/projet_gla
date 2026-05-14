@@ -2,8 +2,11 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Scanner de billets</title>
+
     <script src="https://unpkg.com/html5-qrcode"></script>
+
     <style>
         * {
             margin: 0;
@@ -225,29 +228,218 @@
             background: #eefafd;
         }
 
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 45, 58, 0.55);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 18px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+            background: white;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            border: none;
+            background: transparent;
+            font-size: 24px;
+            cursor: pointer;
+            color: #173243;
+        }
+
         @media (max-width: 900px) {
+            .scanner-main {
+                padding: 18px 16px 28px;
+            }
+
             .scanner-layout {
                 grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .camera-panel,
+            .result-panel {
+                width: 100%;
+            }
+
+            .result-panel {
+                min-height: auto;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .scanner-header {
+                height: 64px;
+                padding: 0 14px;
+            }
+
+            .scanner-header .left {
+                gap: 10px;
+            }
+
+            .back-link {
+                font-size: 20px;
+            }
+
+            .scanner-title {
+                font-size: 16px;
+            }
+
+            .scanner-role {
+                font-size: 12px;
+            }
+
+            .scanner-main {
+                padding: 14px 12px 22px;
+            }
+
+            .panel {
+                border-radius: 16px;
+            }
+
+            .camera-panel,
+            .result-panel {
+                padding: 14px;
+            }
+
+            .camera-panel h2,
+            .result-panel h2 {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+
+            .camera-subtitle {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+
+            .status-bar {
+                margin-top: 12px;
+                padding: 10px 12px;
+                font-size: 13px;
+                border-radius: 10px;
+            }
+
+            .result-placeholder {
+                font-size: 14px;
+                padding: 12px 0;
+            }
+
+            .result-card {
+                padding: 16px;
+                border-radius: 14px;
+            }
+
+            .result-title {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+
+            .result-item {
+                padding: 10px;
+            }
+
+            .result-item .label {
+                font-size: 11px;
+            }
+
+            .result-item .value {
+                font-size: 14px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 11px 14px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .scanner-main {
+                padding: 12px 10px 18px;
+            }
+
+            .camera-panel,
+            .result-panel {
+                padding: 12px;
+            }
+
+            .scanner-title {
+                font-size: 15px;
+            }
+
+            .scanner-role {
+                font-size: 11px;
+            }
+
+            .camera-panel h2,
+            .result-panel h2 {
+                font-size: 17px;
+            }
+
+            .camera-subtitle,
+            .result-placeholder,
+            .status-bar {
+                font-size: 12px;
+            }
+
+            .result-title {
+                font-size: 16px;
             }
         }
     </style>
 </head>
+
 <body>
 <div class="scanner-page">
     <header class="scanner-header">
         <div class="left">
             <a href="index.html" class="back-link">←</a>
+
             <div>
                 <div class="scanner-title">Scanner de billets</div>
-                <div class="scanner-role" id="userRoleLabel">Contrôle d’accès en cours...</div>
+                <div class="scanner-role" id="userRoleLabel">
+                    Vérification de l’accès...
+                </div>
             </div>
         </div>
     </header>
 
     <main class="scanner-main">
         <div class="scanner-layout">
+
             <section class="panel camera-panel">
                 <h2>Scan QR</h2>
+
                 <p class="camera-subtitle">
                     Scannez le QR code du billet présenté par le voyageur pour vérifier sa validité.
                 </p>
@@ -261,171 +453,305 @@
 
             <section class="panel result-panel">
                 <h2>Résultat du contrôle</h2>
+
                 <div id="resultArea" class="result-placeholder">
                     Aucun billet scanné pour le moment. Le résultat du contrôle s’affichera ici après la lecture d’un QR code.
                 </div>
             </section>
+
         </div>
     </main>
+</div>
+
+<div class="modal-overlay" id="resultModal">
+    <div class="modal">
+        <button class="close-modal" id="closeModalBtn">×</button>
+        <div id="modalContent"></div>
+    </div>
 </div>
 
 <script>
     let scannerInstance = null;
     let scanLocked = false;
 
-    function setStatus(message) {
-        document.getElementById("scanStatus").textContent = message;
+    const userRoleLabel = document.getElementById("userRoleLabel");
+    const scanStatus = document.getElementById("scanStatus");
+    const resultArea = document.getElementById("resultArea");
+    const resultModal = document.getElementById("resultModal");
+    const modalContent = document.getElementById("modalContent");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+
+    function isMobileView() {
+        return window.innerWidth <= 900;
     }
 
-    function renderSuccess(data) {
-        const resultArea = document.getElementById("resultArea");
+    function setStatus(message) {
+        scanStatus.textContent = message;
+    }
 
+    function openModal(content) {
+        modalContent.innerHTML = content;
+        resultModal.classList.add("show");
+    }
+
+    function closeModal() {
+        resultModal.classList.remove("show");
+    }
+
+    function displayResult(content) {
+        if (isMobileView()) {
+            openModal(content);
+        } else {
+            resultArea.innerHTML = content;
+        }
+    }
+
+    function resetResultArea() {
         resultArea.innerHTML = `
-        <div class="result-card result-success">
-            <div class="result-title">Billet valide</div>
-            <p>Le billet a été contrôlé avec succès.</p>
+            <div class="result-placeholder">
+                Aucun billet scanné pour le moment. Le résultat du contrôle s’affichera ici après la lecture d’un QR code.
+            </div>
+        `;
+    }
 
-            <div class="result-grid">
-                <div class="result-item">
-                    <div class="label">Ticket ID</div>
-                    <div class="value">${data.ticketId ?? "-"}</div>
+    function renderSuccess(ticketId, userId, message) {
+        const content = `
+            <div class="result-card result-success">
+                <div class="result-title">Billet accepté</div>
+
+                <p>
+                    Le billet a été contrôlé par le serveur.
+                </p>
+
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="label">Ticket ID</div>
+                        <div class="value">${ticketId || "-"}</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="label">User ID</div>
+                        <div class="value">${userId || "-"}</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="label">Réponse serveur</div>
+                        <div class="value">${message || "-"}</div>
+                    </div>
                 </div>
-                <div class="result-item">
-                    <div class="label">User ID</div>
-                    <div class="value">${data.userId ?? "-"}</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Résultat</div>
-                    <div class="value">${data.result ?? "VALID"}</div>
-                </div>
-                <div class="result-item">
-                    <div class="label">Message</div>
-                    <div class="value">${data.message ?? "Billet reconnu par le système"}</div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="restartScanner()">
+                        Scanner à nouveau
+                    </button>
+
+                    <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+                        Retour accueil
+                    </button>
                 </div>
             </div>
+        `;
 
-            <div class="actions">
-                <button class="btn btn-primary" onclick="restartScanner()">Scanner à nouveau</button>
-                <button class="btn btn-secondary" onclick="window.location.href='mytickets.html'">Voir les billets</button>
-            </div>
-        </div>
-    `;
+        displayResult(content);
     }
 
     function renderError(title, message) {
-        const resultArea = document.getElementById("resultArea");
+        const content = `
+            <div class="result-card result-error">
+                <div class="result-title">${title}</div>
 
-        resultArea.innerHTML = `
-        <div class="result-card result-error">
-            <div class="result-title">${title}</div>
-            <p>${message}</p>
+                <p>${message}</p>
 
-            <div class="actions">
-                <button class="btn btn-primary" onclick="restartScanner()">Réessayer</button>
-                <button class="btn btn-secondary">Reporter</button>
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="restartScanner()">
+                        Réessayer
+                    </button>
+
+                    <button class="btn btn-secondary" onclick="closeModal()">
+                        Fermer
+                    </button>
+                </div>
             </div>
-        </div>
-    `;
+        `;
+
+        displayResult(content);
     }
 
-    async function restartScanner() {
+    function renderWarning(title, message) {
+        const content = `
+            <div class="result-card result-warning">
+                <div class="result-title">${title}</div>
+
+                <p>${message}</p>
+
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="restartScanner()">
+                        Scanner à nouveau
+                    </button>
+
+                    <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+                        Retour accueil
+                    </button>
+                </div>
+            </div>
+        `;
+
+        displayResult(content);
+    }
+
+    function restartScanner() {
         scanLocked = false;
+        closeModal();
+        resetResultArea();
         setStatus("Scanner prêt. Présentez un billet.");
-        document.getElementById("resultArea").innerHTML = `
-        <div class="result-placeholder">
-            Aucun billet scanné pour le moment. Le résultat du contrôle s’affichera ici après la lecture d’un QR code.
-        </div>
-    `;
+    }
+
+    function parseQrContent(decodedText) {
+        const parts = decodedText.split(":");
+
+        if (parts.length !== 2) {
+            return null;
+        }
+
+        return {
+            ticketId: parts[0],
+            userId: parts[1]
+        };
+    }
+
+    async function checkAccess() {
+        const response = await fetch("/me");
+
+        if (response.status === 401) {
+            alert("Vous devez vous connecter.");
+            window.location.href = "login.html";
+            return null;
+        }
+
+        if (!response.ok) {
+            throw new Error("Impossible de vérifier l’utilisateur connecté.");
+        }
+
+        const user = await response.json();
+
+        userRoleLabel.textContent = `Utilisateur connecté : ${user.role}`;
+
+        if (user.role !== "ADMIN" && user.role !== "CONDUCTOR") {
+            alert("Accès refusé. Cette page est réservée aux contrôleurs.");
+            window.location.href = "index.html";
+            return null;
+        }
+
+        return user;
+    }
+
+    async function sendScanRequest(ticketId, userId) {
+        const url =
+            `/scan?ticketId=${encodeURIComponent(ticketId)}`
+            + `&userId=${encodeURIComponent(userId)}`;
+
+        const response = await fetch(url, {
+            method: "POST"
+        });
+
+        const text = await response.text();
+
+        if (response.status === 401) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        if (response.status === 403) {
+            renderError(
+                "Accès refusé",
+                "Votre rôle ne permet pas de scanner des billets."
+            );
+            setStatus("Accès refusé.");
+            return;
+        }
+
+        if (!response.ok) {
+            renderError(
+                "Billet refusé",
+                text || "Le billet est invalide ou inexistant."
+            );
+            setStatus("Le contrôle a échoué.");
+            return;
+        }
+
+        if (text.toUpperCase().includes("ALREADY")) {
+            renderWarning(
+                "Billet déjà validé",
+                text
+            );
+            setStatus("Billet déjà contrôlé.");
+            return;
+        }
+
+        renderSuccess(ticketId, userId, text);
+        setStatus("Billet contrôlé avec succès.");
+    }
+
+    function onScanSuccess(decodedText) {
+        if (scanLocked) {
+            return;
+        }
+
+        scanLocked = true;
+
+        setStatus("QR détecté. Vérification du billet...");
+
+        const qrData = parseQrContent(decodedText);
+
+        if (!qrData) {
+            renderError(
+                "QR invalide",
+                "Le format du QR code n’est pas reconnu. Format attendu : ticketId:userId."
+            );
+
+            setStatus("Erreur de lecture du QR code.");
+            return;
+        }
+
+        sendScanRequest(qrData.ticketId, qrData.userId);
     }
 
     async function initScanner() {
         try {
-            const res = await fetch("/me");
+            const user = await checkAccess();
 
-            if (!res.ok) {
-                alert("Not logged in");
-                window.location.href = "login.html";
+            if (!user) {
                 return;
-            }
-
-            const user = await res.json();
-
-            document.getElementById("userRoleLabel").textContent =
-                `Utilisateur connecté : ${user.role}`;
-
-            if (user.role !== "ADMIN" && user.role !== "CONDUCTOR") {
-                alert("Access denied");
-                window.location.href = "index.html";
-                return;
-            }
-
-            function onScanSuccess(decodedText) {
-                if (scanLocked) return;
-                scanLocked = true;
-
-                setStatus("QR détecté. Vérification du billet en cours...");
-
-                const parts = decodedText.split(":");
-
-                if (parts.length !== 2) {
-                    renderError("QR invalide", "Le format du QR code n’est pas reconnu.");
-                    setStatus("Erreur de lecture du QR code.");
-                    return;
-                }
-
-                const ticketId = parts[0];
-                const userId = parts[1];
-
-                fetch(`/scan?ticketId=${ticketId}&userId=${userId}`, {
-                    method: "POST"
-                })
-                    .then(async res => {
-                        const text = await res.text();
-
-                        if (!res.ok) {
-                            throw new Error(text || "Erreur serveur");
-                        }
-
-                        let parsed;
-                        try {
-                            parsed = JSON.parse(text);
-                        } catch {
-                            parsed = {
-                                ticketId,
-                                userId,
-                                result: text,
-                                message: text
-                            };
-                        }
-
-                        renderSuccess(parsed);
-                        setStatus("Billet contrôlé avec succès.");
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        renderError("Billet invalide / inexistant", err.message || "Erreur lors du contrôle du billet.");
-                        setStatus("Le contrôle a échoué.");
-                    });
             }
 
             scannerInstance = new Html5QrcodeScanner(
                 "reader",
-                { fps: 10, qrbox: 250 }
+                {
+                    fps: 10,
+                    qrbox: 250
+                }
             );
 
             scannerInstance.render(onScanSuccess);
+
             setStatus("Scanner prêt. Présentez un billet.");
 
         } catch (error) {
             console.error(error);
-            renderError("Erreur d’accès", "Impossible d’initialiser le scanner.");
+
+            renderError(
+                "Erreur d’accès",
+                "Impossible d’initialiser le scanner."
+            );
+
             setStatus("Erreur lors de l’initialisation.");
         }
     }
 
+    closeModalBtn.addEventListener("click", closeModal);
+
     initScanner();
 </script>
 
-<script src="app.js"></script>
 </body>
 </html>

@@ -221,3 +221,194 @@ button:hover {
         max-width: none;
     }
 }
+@media (max-width: 768px) {
+    body, html {
+        height: auto;
+        min-height: 100%;
+    }
+
+    .page {
+        min-height: 100vh;
+        height: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background-position: center;
+    }
+
+    .navbar {
+        padding: 16px 16px;
+        align-items: center;
+    }
+
+    .logo img {
+        height: 46px;
+    }
+
+    .menu {
+        gap: 10px;
+    }
+
+    /* Ẩn text menu trên mobile để khỏi vỡ */
+    .menu a:not(.user-avatar),
+    .menu button:not(#logoutBtn) {
+        display: none !important;
+    }
+
+    /* Hiện logout gọn hơn */
+    #logoutBtn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        border-radius: 999px;
+        min-width: unset;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .hero {
+        min-height: auto;
+        padding: 10px 16px 28px 16px;
+        align-items: flex-start;
+    }
+
+    .hero-text {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .small-title {
+        font-size: 2.1rem;
+        line-height: 1.1;
+    }
+
+    .big-title {
+        font-size: 3rem;
+        line-height: 0.95;
+    }
+
+    .hero-text p {
+        margin-top: 16px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        max-width: 100%;
+    }
+
+    .search-card {
+        width: 100%;
+        max-width: 100%;
+        margin-top: 20px;
+        padding: 16px;
+        border-radius: 20px;
+    }
+
+    .search-card h2 {
+        font-size: 1.45rem;
+        margin-bottom: 14px;
+    }
+
+    .row {
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    input {
+        padding: 14px 16px;
+        font-size: 1rem;
+        border-radius: 14px;
+    }
+
+    .field-group {
+        gap: 6px;
+    }
+
+    .field-group.small {
+        max-width: none;
+    }
+
+    label {
+        font-size: 0.95rem;
+    }
+
+    .search-btn-wrapper {
+        justify-content: stretch;
+        margin-top: 6px;
+    }
+
+    .search-btn-wrapper button,
+    .search-btn-wrapper button[type="submit"] {
+        width: 100%;
+        padding: 14px 18px;
+        font-size: 1rem;
+        border-radius: 999px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        padding: 14px 12px;
+    }
+
+    .logo img {
+        height: 42px;
+    }
+
+    .menu {
+        gap: 8px;
+    }
+
+    .user-avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    #logoutBtn {
+        padding: 9px 12px;
+        font-size: 0.78rem;
+    }
+
+    .hero {
+        padding: 6px 12px 24px 12px;
+    }
+
+    .small-title {
+        font-size: 1.9rem;
+    }
+
+    .big-title {
+        font-size: 2.6rem;
+    }
+
+    .hero-text p {
+        font-size: 0.9rem;
+    }
+
+    .search-card {
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .search-card h2 {
+        font-size: 1.3rem;
+    }
+
+    input {
+        font-size: 0.95rem;
+        padding: 13px 14px;
+    }
+
+    label {
+        font-size: 0.88rem;
+    }
+
+    .search-btn-wrapper button,
+    .search-btn-wrapper button[type="submit"] {
+        font-size: 0.95rem;
+        padding: 13px 16px;
+    }
+}

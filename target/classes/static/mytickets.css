@@ -298,3 +298,238 @@ body {
         align-items: flex-start;
     }
 }
+@media (max-width: 900px) {
+    .topbar {
+        padding: 0 18px;
+    }
+
+    .tickets-main {
+        padding: 24px 14px 40px;
+    }
+
+    .ticket-route {
+        font-size: 20px;
+    }
+
+    .train-route-block {
+        grid-template-columns: 1fr;
+    }
+
+    .route-right {
+        text-align: left;
+    }
+
+    .ticket-footer {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+
+    .topbar {
+        height: 76px;
+        padding: 0 14px;
+    }
+
+    .logo img {
+        height: 42px;
+    }
+
+    .menu {
+        gap: 10px;
+    }
+
+    /* Ẩn text menu trên mobile */
+    .menu a:not(.user-avatar) {
+        display: none !important;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .tickets-main {
+        padding: 18px 12px 28px;
+    }
+
+    .page-header {
+        margin-bottom: 16px;
+    }
+
+    .page-header h1 {
+        font-size: 1.65rem;
+        line-height: 1.2;
+        margin-bottom: 6px;
+    }
+
+    .page-header p {
+        font-size: 0.92rem;
+        line-height: 1.5;
+    }
+
+    .tickets-summary {
+        font-size: 13px;
+        margin-bottom: 14px;
+    }
+
+    .trains-list {
+        gap: 14px;
+    }
+
+    .train-card {
+        padding: 16px 16px 14px;
+        border-radius: 16px;
+    }
+
+    .ticket-card-top {
+        margin-bottom: 14px;
+        gap: 10px;
+    }
+
+    .ticket-route {
+        font-size: 1.08rem;
+        line-height: 1.35;
+        margin-bottom: 4px;
+    }
+
+    .ticket-subtitle {
+        font-size: 12px;
+    }
+
+    .status-badge {
+        font-size: 11px;
+        padding: 7px 10px;
+    }
+
+    .train-route-block {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .route-left,
+    .route-right {
+        font-size: 13px;
+    }
+
+    .route-right {
+        text-align: left;
+    }
+
+    .route-line {
+        width: 100%;
+        height: 1px;
+    }
+
+    .ticket-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .price-block span {
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .price-block strong {
+        font-size: 1.8rem;
+    }
+
+    .ticket-meta {
+        gap: 16px;
+    }
+
+    .ticket-meta span {
+        font-size: 11px;
+    }
+
+    .ticket-meta p {
+        font-size: 14px;
+    }
+
+    .empty-state {
+        padding: 28px 16px;
+        border-radius: 16px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .topbar {
+        height: 70px;
+        padding: 0 10px;
+    }
+
+    .logo img {
+        height: 38px;
+    }
+
+    .menu {
+        gap: 8px;
+    }
+
+    .user-avatar {
+        width: 38px;
+        height: 38px;
+    }
+
+    .tickets-main {
+        padding: 14px 10px 22px;
+    }
+
+    .page-header h1 {
+        font-size: 1.45rem;
+    }
+
+    .page-header p {
+        font-size: 0.88rem;
+    }
+
+    .tickets-summary {
+        font-size: 12px;
+    }
+
+    .train-card {
+        padding: 14px 14px 12px;
+        border-radius: 14px;
+    }
+
+    .ticket-route {
+        font-size: 1rem;
+    }
+
+    .ticket-subtitle {
+        font-size: 11px;
+    }
+
+    .status-badge {
+        font-size: 10px;
+        padding: 6px 9px;
+    }
+
+    .route-left,
+    .route-right {
+        font-size: 12px;
+    }
+
+    .price-block strong {
+        font-size: 1.55rem;
+    }
+
+    .ticket-meta p {
+        font-size: 13px;
+    }
+
+    .empty-state h3 {
+        font-size: 1.05rem;
+    }
+}

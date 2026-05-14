@@ -19,15 +19,7 @@
             <a href="index.html">ACCUEIL</a>
             <a href="mytickets.html">MES BILLETS</a>
 
-            <a href="scanner.html" id="scannerLink" style="display:none;">
-                SCANNER
-            </a>
-
-            <a href="admin.html" id="adminLink" style="display:none;">
-                ADMIN
-            </a>
-
-            <a href="login.html" class="user-avatar" id="loginLink">
+            <a href="login.html" class="user-avatar">
                 <img src="assets/client.png" alt="Profil utilisateur" />
             </a>
         </nav>
@@ -49,7 +41,7 @@
                     </div>
                 </div>
 
-                <button id="searchAgainBtn">Chercher</button>
+                <button id="searchAgainBtn">Modifier</button>
             </div>
 
             <div class="selected-date-label" id="selectedDateLabel">
@@ -67,10 +59,10 @@
 
             <div class="right-header">
                 <h2>Trains disponibles</h2>
-                <span class="train-count">0 trains disponibles</span>
+                <span class="train-count">Chargement...</span>
             </div>
 
-            <div class="trains-list"></div>
+            <div class="trains-list" id="trainsList"></div>
 
         </section>
 
@@ -82,40 +74,76 @@
 
     const from = params.get("from");
     const to = params.get("to");
-    const selectedDateParam = params.get("date");
 
     const fromField = document.getElementById("fromField");
     const toField = document.getElementById("toField");
     const selectedDateLabel = document.getElementById("selectedDateLabel");
     const trainCount = document.querySelector(".train-count");
-    const tripsList = document.querySelector(".trains-list");
+    const trainsList = document.getElementById("trainsList");
+    const searchAgainBtn = document.getElementById("searchAgainBtn");
 
     fromField.textContent = from || "Ville de départ";
     toField.textContent = to || "Ville d’arrivée";
 
-    function parseSelectedDate(dateStr) {
-        if (!dateStr) return null;
+    function getSelectedDate() {
+        const rawDate = params.get("depart") || params.get("date");
 
-        const parsed = new Date(dateStr);
-        if (isNaN(parsed.getTime())) return null;
+        if (rawDate) {
+            const parsedDate = new Date(rawDate);
 
-        parsed.setHours(0, 0, 0, 0);
-        return parsed;
-    }
+            if (!isNaN(parsedDate.getTime())) {
+                parsedDate.setHours(0, 0, 0, 0);
+                return parsedDate;
+            }
+        }
 
-    const selectedDate = parseSelectedDate(selectedDateParam) || (() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         return today;
-    })();
+    }
+
+    const selectedDate = getSelectedDate();
 
     selectedDateLabel.textContent =
-        `Date sélectionnée : ${selectedDate.toLocaleDateString("fr-FR", {
+        "Date sélectionnée : " +
+        selectedDate.toLocaleDateString("fr-FR", {
             weekday: "long",
             day: "2-digit",
             month: "long",
             year: "numeric"
-        })}`;
+        });
+
+    searchAgainBtn.addEventListener("click", () => {
+        window.location.href = "index.html";
+    });
+
+    function formatDateTime(value) {
+        const date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return {
+                date: "-",
+                time: "-"
+            };
+        }
+
+        return {
+            date: date.toLocaleDateString("fr-FR"),
+            time: date.toLocaleTimeString("fr-FR", {
+                hour: "2-digit",
+                minute: "2-digit"
+            })
+        };
+    }
+
+    function showEmptyState(title, message) {
+        trainsList.innerHTML = `
+            <div class="empty-state">
+                <h3>${title}</h3>
+                <p>${message}</p>
+            </div>
+        `;
+    }
 
     const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
     let dayOffset = -1;
@@ -124,6 +152,14 @@
         return dateA.getFullYear() === dateB.getFullYear()
             && dateA.getMonth() === dateB.getMonth()
             && dateA.getDate() === dateB.getDate();
+    }
+
+    function formatDateForUrl(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
     }
 
     function renderDays() {
@@ -142,13 +178,18 @@
             }
 
             dayDiv.innerHTML = `
-            ${dayLabels[current.getDay()]}<br>
-            <span>${current.getDate()}</span>
-        `;
+                ${dayLabels[current.getDay()]}<br>
+                <span>${current.getDate()}</span>
+            `;
 
             dayDiv.addEventListener("click", () => {
-                const newDate = current.toISOString().split("T")[0];
-                const newUrl = `recherche.html?from=${encodeURIComponent(from || "")}&to=${encodeURIComponent(to || "")}&date=${encodeURIComponent(newDate)}`;
+                const newDate = formatDateForUrl(current);
+
+                const newUrl =
+                    `recherche.html?from=${encodeURIComponent(from || "")}`
+                    + `&to=${encodeURIComponent(to || "")}`
+                    + `&date=${encodeURIComponent(newDate)}`;
+
                 window.location.href = newUrl;
             });
 
@@ -166,145 +207,112 @@
         renderDays();
     });
 
-    document.getElementById("searchAgainBtn").addEventListener("click", () => {
-        const currentDate = selectedDate.toISOString().split("T")[0];
-        const newUrl = `index.html?from=${encodeURIComponent(from || "")}&to=${encodeURIComponent(to || "")}&date=${encodeURIComponent(currentDate)}`;
-        window.location.href = newUrl;
-    });
-
     async function loadTrips() {
         if (!from || !to) {
             trainCount.textContent = "Recherche incomplète";
-            tripsList.innerHTML = `
-            <div class="empty-state">
-                <h3>Recherche incomplète</h3>
-                <p>Veuillez renseigner une ville de départ et une ville d’arrivée.</p>
-            </div>
-        `;
+            showEmptyState(
+                "Recherche incomplète",
+                "Veuillez renseigner une ville de départ et une ville d’arrivée."
+            );
             return;
         }
 
         try {
-            const response = await fetch(
-                `/trips/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
-            );
+            const url =
+                `/trips/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+
+            const response = await fetch(url);
 
             if (!response.ok) {
-                throw new Error("Erreur lors du chargement des trajets");
+                throw new Error("Erreur API");
             }
 
             const trips = await response.json();
-            tripsList.innerHTML = "";
-            trainCount.textContent = `${trips.length} trains disponibles`;
+
+            trainsList.innerHTML = "";
+            trainCount.textContent = `${trips.length} train(s) disponible(s)`;
 
             if (trips.length === 0) {
-                tripsList.innerHTML = `
-                <div class="empty-state">
-                    <h3>Aucun train disponible</h3>
-                    <p>Aucun trajet ne correspond à votre recherche pour le moment.</p>
-                </div>
-            `;
+                showEmptyState(
+                    "Aucun train disponible",
+                    "Aucun trajet ne correspond à votre recherche pour le moment."
+                );
                 return;
             }
 
             trips.forEach(trip => {
-                const departureDate = new Date(trip.departureTime);
-                const arrivalDate = new Date(trip.arrivalTime);
+                const departure = formatDateTime(trip.departureTime);
+                const arrival = formatDateTime(trip.arrivalTime);
 
                 const card = document.createElement("article");
                 card.className = "train-card";
 
                 card.innerHTML = `
-                <div class="train-info">
-                    <h3>${trip.departure} → ${trip.destination}</h3>
+                    <div class="train-info">
+                        <h3>${trip.departure} → ${trip.destination}</h3>
 
-                    <div class="train-route">
-                        <div class="route-left">
-                            <strong>${departureDate.toLocaleDateString("fr-FR")}</strong>
-                            <span>${departureDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
-                            <span>${trip.departure}</span>
+                        <div class="train-route">
+                            <div class="route-left">
+                                <strong>${departure.date}</strong>
+                                <span>${departure.time}</span>
+                                <span>${trip.departure}</span>
+                            </div>
+
+                            <div class="route-line"></div>
+
+                            <div class="route-right">
+                                <strong>${arrival.date}</strong>
+                                <span>${arrival.time}</span>
+                                <span>${trip.destination}</span>
+                            </div>
                         </div>
 
-                        <div class="route-line"></div>
-
-                        <div class="route-right">
-                            <strong>${arrivalDate.toLocaleDateString("fr-FR")}</strong>
-                            <span>${arrivalDate.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</span>
-                            <span>${trip.destination}</span>
+                        <div class="price-block">
+                            <span>Prix</span>
+                            <strong>${trip.price}€</strong>
                         </div>
                     </div>
 
-                    <div class="price-block">
-                        <span>Prix</span>
-                        <strong>${trip.price}€</strong>
+                    <div class="train-action">
+                        <button class="buy-btn">Acheter</button>
                     </div>
-                </div>
+                `;
 
-                <div class="train-action">
-                    <button class="buy-btn" onclick="goToDetail(
-                        '${trip.id}',
-                        '${trip.departure}',
-                        '${trip.destination}',
-                        '${trip.price}',
-                        '${trip.departureTime}',
-                        '${trip.arrivalTime}'
-                    )">
-                        Acheter
-                    </button>
-                </div>
-            `;
+                const buyBtn = card.querySelector(".buy-btn");
 
-                tripsList.appendChild(card);
+                buyBtn.addEventListener("click", () => {
+                    goToDetail(trip);
+                });
+
+                trainsList.appendChild(card);
             });
 
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            console.error(error);
+
             trainCount.textContent = "Erreur de chargement";
-            tripsList.innerHTML = `
-            <div class="empty-state">
-                <h3>Impossible de charger les trajets</h3>
-                <p>Veuillez réessayer plus tard.</p>
-            </div>
-        `;
+            showEmptyState(
+                "Impossible de charger les trajets",
+                "Vérifiez que le serveur Spring Boot est bien lancé."
+            );
         }
     }
 
-    async function buyTicket(tripId) {
-        try {
-            const res = await fetch(`/tickets/buy?tripId=${tripId}`, {
-                method: "POST"
-            });
+    function goToDetail(trip) {
+        const url =
+            `detail.html?tripId=${encodeURIComponent(trip.id)}`
+            + `&departure=${encodeURIComponent(trip.departure)}`
+            + `&destination=${encodeURIComponent(trip.destination)}`
+            + `&price=${encodeURIComponent(trip.price)}`
+            + `&departureTime=${encodeURIComponent(trip.departureTime)}`
+            + `&arrivalTime=${encodeURIComponent(trip.arrivalTime)}`;
 
-            if (!res.ok) {
-                alert("Purchase failed");
-                return;
-            }
-
-            alert("Ticket purchased!");
-            window.location.href = "mytickets.html";
-
-        } catch (err) {
-            console.error(err);
-            alert("Error buying ticket");
-        }
+        window.location.href = url;
     }
 
     renderDays();
     loadTrips();
-    function goToDetail(tripId, departure, destination, price, departureTime, arrivalTime) {
-        const url =
-            `detail.html?tripId=${encodeURIComponent(tripId)}`
-            + `&departure=${encodeURIComponent(departure)}`
-            + `&destination=${encodeURIComponent(destination)}`
-            + `&price=${encodeURIComponent(price)}`
-            + `&departureTime=${encodeURIComponent(departureTime)}`
-            + `&arrivalTime=${encodeURIComponent(arrivalTime)}`
-            + `&rank=${encodeURIComponent("Classe standard")}`;
-
-        window.location.href = url;
-    }
 </script>
 
-<script src="app.js"></script>
 </body>
 </html>

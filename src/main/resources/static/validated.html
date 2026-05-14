@@ -6,6 +6,7 @@
     <title>Réservation confirmée - TouTou</title>
     <link rel="stylesheet" href="validated.css" />
 </head>
+
 <body>
 <div class="validated-page">
 
@@ -18,15 +19,7 @@
             <a href="index.html">ACCUEIL</a>
             <a href="mytickets.html">MES BILLETS</a>
 
-            <a href="scanner.html" id="scannerLink" style="display:none;">
-                SCANNER
-            </a>
-
-            <a href="admin.html" id="adminLink" style="display:none;">
-                ADMIN
-            </a>
-
-            <a href="login.html" class="user-avatar" id="loginLink">
+            <a href="login.html" class="user-avatar">
                 <img src="assets/client.png" alt="Profil utilisateur" />
             </a>
         </nav>
@@ -40,8 +33,10 @@
         </div>
 
         <h1>Félicitations ! Votre réservation a bien été confirmée</h1>
+
         <p class="subtitle">
-            Votre billet a été enregistré avec succès. Vous pouvez consulter ses détails ci-dessous ou le retrouver plus tard dans la rubrique « Mes billets ».
+            Votre billet a été enregistré avec succès. Vous pouvez consulter ses détails
+            ci-dessous ou le retrouver plus tard dans la rubrique « Mes billets ».
         </p>
 
         <div id="messageBox" class="message-box hidden"></div>
@@ -56,7 +51,7 @@
                     </div>
 
                     <div class="status-badge" id="statusBadge">
-                        VALIDÉ
+                        PAYÉ
                     </div>
                 </div>
 
@@ -85,12 +80,24 @@
                 <div class="ticket-middle">
                     <div class="info-column">
                         <p class="section-title">Voyageur</p>
-                        <p id="travellerName">-</p>
+                        <p id="travellerName">Voyageur principal</p>
                     </div>
 
                     <div class="info-column">
                         <p class="section-title">Contact</p>
                         <p id="travellerEmail">-</p>
+                    </div>
+                </div>
+
+                <div class="ticket-middle">
+                    <div class="info-column">
+                        <p class="section-title">Numéro du billet</p>
+                        <p id="ticketId">-</p>
+                    </div>
+
+                    <div class="info-column">
+                        <p class="section-title">Classe</p>
+                        <p id="rankField">Classe standard</p>
                     </div>
                 </div>
 
@@ -102,44 +109,56 @@
 
             <div class="qr-panel">
                 <div class="qr-box">
-                    <img id="qrImage" src="assets/qr-placeholder.png" alt="QR Code du billet" />
+                    <img
+                            id="qrImage"
+                            src="assets/qr-placeholder.png"
+                            alt="QR Code du billet"
+                    />
                 </div>
 
                 <p class="qr-text">
-                    Présentez ce QR code lors du contrôle pour permettre la validation du billet.
+                    Le QR code officiel du billet a été généré par le serveur et envoyé par email.
+                    Vous pouvez aussi retrouver le billet dans « Mes billets ».
                 </p>
 
                 <div class="action-buttons">
-                    <button class="btn btn-outline" onclick="goToMyTickets()">
+                    <button class="btn btn-outline" id="myTicketsBtn">
                         Voir mes billets
                     </button>
 
-                    <button class="btn btn-primary" onclick="window.location.href='index.html'">
+                    <button class="btn btn-primary" id="newBookingBtn">
                         Réserver un autre billet
                     </button>
                 </div>
             </div>
+
         </section>
     </main>
 </div>
 
 <script>
+    const messageBox = document.getElementById("messageBox");
+
     function showMessage(message, type = "info") {
-        const box = document.getElementById("messageBox");
-        box.textContent = message;
-        box.className = `message-box ${type}`;
-        box.classList.remove("hidden");
+        messageBox.textContent = message;
+        messageBox.className = `message-box ${type}`;
+        messageBox.classList.remove("hidden");
 
         setTimeout(() => {
-            box.classList.add("hidden");
+            messageBox.classList.add("hidden");
         }, 3000);
     }
 
     function formatDateLabel(value) {
         if (!value) return "-";
-        const d = new Date(Number(value) || value);
-        if (isNaN(d.getTime())) return "-";
-        return d.toLocaleDateString("fr-FR", {
+
+        const date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleDateString("fr-FR", {
             day: "2-digit",
             month: "short",
             year: "numeric"
@@ -148,62 +167,114 @@
 
     function formatTimeLabel(value) {
         if (!value) return "-";
-        const d = new Date(Number(value) || value);
-        if (isNaN(d.getTime())) return "-";
-        return d.toLocaleTimeString("fr-FR", {
+
+        const date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleTimeString("fr-FR", {
             hour: "2-digit",
             minute: "2-digit"
         });
     }
 
-    function goToMyTickets() {
-        window.location.href = "mytickets.html";
+    function getTicketId(data) {
+        if (!data) return "-";
+
+        return data.ticketId
+            || data.id_t
+            || data.id
+            || data.ticket?.id_t
+            || data.ticket?.id
+            || "-";
+    }
+
+    function getTicketState(data) {
+        return data.ticketState
+            || data.state
+            || data.ticket?.state
+            || "PAID";
     }
 
     function loadValidatedData() {
         const dataRaw = sessionStorage.getItem("lastReservation");
 
         if (!dataRaw) {
-            showMessage("Aucune donnée de réservation récente n’a été trouvée.", "error");
+            showMessage("Aucune réservation récente trouvée.", "error");
+
+            document.getElementById("ticketStatus").textContent = "Aucune donnée";
+            document.getElementById("statusBadge").textContent = "-";
             return;
         }
 
         let data;
+
         try {
             data = JSON.parse(dataRaw);
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            console.error(error);
             showMessage("Impossible de lire les données de réservation.", "error");
             return;
         }
 
-        document.getElementById("ticketStatus").textContent = data.statusLabel || "Confirmé";
-        document.getElementById("statusBadge").textContent = data.ticketState || "VALID";
+        const ticketState = getTicketState(data);
+        const ticketId = getTicketId(data);
+
+        document.getElementById("ticketStatus").textContent =
+            data.statusLabel || "Confirmé";
+
+        document.getElementById("statusBadge").textContent =
+            ticketState;
 
         document.getElementById("tripTitle").textContent =
             `${data.departure || "-"} → ${data.destination || "-"}`;
 
-        document.getElementById("departureDate").textContent = formatDateLabel(data.departureTime);
-        document.getElementById("departureTime").textContent = formatTimeLabel(data.departureTime);
-        document.getElementById("departureStation").textContent = data.departure || "-";
+        document.getElementById("departureDate").textContent =
+            formatDateLabel(data.departureTime);
 
-        document.getElementById("arrivalDate").textContent = formatDateLabel(data.arrivalTime);
-        document.getElementById("arrivalTime").textContent = formatTimeLabel(data.arrivalTime);
-        document.getElementById("arrivalStation").textContent = data.destination || "-";
+        document.getElementById("departureTime").textContent =
+            formatTimeLabel(data.departureTime);
 
-        document.getElementById("travellerName").textContent = data.fullName || "Voyageur principal";
-        document.getElementById("travellerEmail").textContent = data.email || "Email non renseigné";
+        document.getElementById("departureStation").textContent =
+            data.departure || "-";
 
-        document.getElementById("totalPrice").textContent = `${data.totalPrice || 0}€`;
+        document.getElementById("arrivalDate").textContent =
+            formatDateLabel(data.arrivalTime);
 
-        if (data.qrPath) {
-            document.getElementById("qrImage").src = data.qrPath;
-        }
+        document.getElementById("arrivalTime").textContent =
+            formatTimeLabel(data.arrivalTime);
+
+        document.getElementById("arrivalStation").textContent =
+            data.destination || "-";
+
+        document.getElementById("travellerName").textContent =
+            data.fullName || "Voyageur principal";
+
+        document.getElementById("travellerEmail").textContent =
+            data.email || "Email non renseigné";
+
+        document.getElementById("ticketId").textContent =
+            ticketId;
+
+        document.getElementById("rankField").textContent =
+            data.rank || "Classe standard";
+
+        document.getElementById("totalPrice").textContent =
+            `${data.totalPrice || data.basePrice || 0}€`;
     }
+
+    document.getElementById("myTicketsBtn").addEventListener("click", () => {
+        window.location.href = "mytickets.html";
+    });
+
+    document.getElementById("newBookingBtn").addEventListener("click", () => {
+        window.location.href = "index.html";
+    });
 
     loadValidatedData();
 </script>
 
-<script src="app.js"></script>
 </body>
 </html>

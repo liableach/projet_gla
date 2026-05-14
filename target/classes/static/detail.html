@@ -6,6 +6,7 @@
     <title>Détail de la réservation - TouTou</title>
     <link rel="stylesheet" href="detail.css" />
 </head>
+
 <body>
 <div class="detail-page">
 
@@ -18,15 +19,7 @@
             <a href="index.html">ACCUEIL</a>
             <a href="mytickets.html">MES BILLETS</a>
 
-            <a href="scanner.html" id="scannerLink" style="display:none;">
-                SCANNER
-            </a>
-
-            <a href="admin.html" id="adminLink" style="display:none;">
-                ADMIN
-            </a>
-
-            <a href="login.html" class="user-avatar" id="loginLink">
+            <a href="login.html" class="user-avatar">
                 <img src="assets/client.png" alt="Profil utilisateur" />
             </a>
         </nav>
@@ -43,7 +36,7 @@
         <div id="messageBox" class="message-box hidden"></div>
 
         <div class="content-grid">
-            <!-- LEFT -->
+
             <section class="left-column">
                 <div class="card client-card">
                     <div class="card-header">
@@ -52,19 +45,28 @@
 
                     <div class="traveller-row">
                         <span class="traveller-index">1.</span>
-                        <span class="traveller-name" id="travellerPreviewName">Voyageur principal</span>
+                        <span class="traveller-name" id="travellerPreviewName">
+                            Voyageur principal
+                        </span>
                     </div>
 
                     <div class="form-block">
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="fullName">Nom complet</label>
-                                <input type="text" id="fullName" placeholder="Ex: John Woodspear" />
+                                <input
+                                        type="text"
+                                        id="fullName"
+                                        placeholder="Ex: John Woodspear"
+                                />
                             </div>
 
                             <div class="form-group">
                                 <label for="birthdate">Date de naissance</label>
-                                <input type="date" id="birthdate" />
+                                <input
+                                        type="date"
+                                        id="birthdate"
+                                />
                             </div>
 
                             <div class="form-group">
@@ -79,12 +81,16 @@
 
                             <div class="form-group">
                                 <label for="nationality">Nationalité</label>
-                                <input type="text" id="nationality" placeholder="Ex: Française" />
+                                <input
+                                        type="text"
+                                        id="nationality"
+                                        placeholder="Ex: Française"
+                                />
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button class="save-btn" type="button" onclick="saveTravellerPreview()">
+                            <button class="save-btn" type="button" id="saveTravellerBtn">
                                 Enregistrer
                             </button>
                         </div>
@@ -97,18 +103,25 @@
                     <div class="contact-grid">
                         <div class="form-group">
                             <label for="phone">Numéro de téléphone</label>
-                            <input type="text" id="phone" placeholder="Ex: 0612345678" />
+                            <input
+                                    type="text"
+                                    id="phone"
+                                    placeholder="Ex: 0612345678"
+                            />
                         </div>
 
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" placeholder="Ex: nom@email.com" />
+                            <input
+                                    type="email"
+                                    id="email"
+                                    placeholder="Ex: nom@email.com"
+                            />
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- RIGHT -->
             <section class="right-column">
                 <div class="ticket-summary">
                     <div class="summary-header">
@@ -159,7 +172,7 @@
                     </div>
                 </div>
 
-                <button class="pay-btn" id="payBtn" onclick="confirmPurchase()">
+                <button class="pay-btn" id="payBtn" type="button">
                     Payer
                 </button>
 
@@ -178,24 +191,32 @@
     const price = params.get("price");
     const departureTimeRaw = params.get("departureTime");
     const arrivalTimeRaw = params.get("arrivalTime");
-    const rank = params.get("rank");
+    const rank = params.get("rank") || "Classe standard";
+
+    const messageBox = document.getElementById("messageBox");
+    const payBtn = document.getElementById("payBtn");
+    const saveTravellerBtn = document.getElementById("saveTravellerBtn");
 
     function showMessage(message, type = "info") {
-        const box = document.getElementById("messageBox");
-        box.textContent = message;
-        box.className = `message-box ${type}`;
-        box.classList.remove("hidden");
+        messageBox.textContent = message;
+        messageBox.className = `message-box ${type}`;
+        messageBox.classList.remove("hidden");
 
         setTimeout(() => {
-            box.classList.add("hidden");
+            messageBox.classList.add("hidden");
         }, 3500);
     }
 
     function formatDateLabel(dateValue) {
         if (!dateValue) return "-";
-        const d = new Date(Number(dateValue) || dateValue);
-        if (isNaN(d.getTime())) return "-";
-        return d.toLocaleDateString("fr-FR", {
+
+        const date = new Date(dateValue);
+
+        if (isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleDateString("fr-FR", {
             day: "2-digit",
             month: "short"
         });
@@ -203,9 +224,14 @@
 
     function formatTimeLabel(dateValue) {
         if (!dateValue) return "-";
-        const d = new Date(Number(dateValue) || dateValue);
-        if (isNaN(d.getTime())) return "-";
-        return d.toLocaleTimeString("fr-FR", {
+
+        const date = new Date(dateValue);
+
+        if (isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleTimeString("fr-FR", {
             hour: "2-digit",
             minute: "2-digit"
         });
@@ -217,27 +243,39 @@
                 ? `${departure} → ${destination}`
                 : "Trajet sélectionné";
 
-        document.getElementById("departureDate").textContent = formatDateLabel(departureTimeRaw);
-        document.getElementById("departureTime").textContent = formatTimeLabel(departureTimeRaw);
-        document.getElementById("departureCity").textContent = departure || "-";
+        document.getElementById("departureDate").textContent =
+            formatDateLabel(departureTimeRaw);
 
-        document.getElementById("arrivalDate").textContent = formatDateLabel(arrivalTimeRaw);
-        document.getElementById("arrivalTime").textContent = formatTimeLabel(arrivalTimeRaw);
-        document.getElementById("arrivalCity").textContent = destination || "-";
+        document.getElementById("departureTime").textContent =
+            formatTimeLabel(departureTimeRaw);
 
-        document.getElementById("rankField").textContent = rank || "Classe standard";
+        document.getElementById("departureCity").textContent =
+            departure || "-";
+
+        document.getElementById("arrivalDate").textContent =
+            formatDateLabel(arrivalTimeRaw);
+
+        document.getElementById("arrivalTime").textContent =
+            formatTimeLabel(arrivalTimeRaw);
+
+        document.getElementById("arrivalCity").textContent =
+            destination || "-";
+
+        document.getElementById("rankField").textContent = rank;
 
         const numericPrice = Number(price || 0);
         const fees = 0;
         const total = numericPrice + fees;
 
         document.getElementById("basePrice").textContent = `${numericPrice}€`;
+        document.getElementById("passengerCount").textContent = "1";
         document.getElementById("fees").textContent = `${fees}€`;
         document.getElementById("totalPrice").textContent = `${total}€`;
     }
 
     function saveTravellerPreview() {
         const fullName = document.getElementById("fullName").value.trim();
+
         document.getElementById("travellerPreviewName").textContent =
             fullName || "Voyageur principal";
 
@@ -278,40 +316,101 @@
         return true;
     }
 
-    async function confirmPurchase() {
-        if (!validateForm()) return;
+    function saveReservationLocally(ticket) {
+        const numericPrice = Number(price || 0);
+        const fees = 0;
+        const total = numericPrice + fees;
 
-        const payBtn = document.getElementById("payBtn");
+        const reservationData = {
+            tripId: tripId,
+            ticketId: ticket.id_t || ticket.id || ticket.ticketId || null,
+
+            departure: departure || "-",
+            destination: destination || "-",
+            departureTime: departureTimeRaw,
+            arrivalTime: arrivalTimeRaw,
+
+            rank: rank,
+            fullName: document.getElementById("fullName").value.trim(),
+            birthdate: document.getElementById("birthdate").value,
+            gender: document.getElementById("gender").value,
+            nationality: document.getElementById("nationality").value.trim(),
+            phone: document.getElementById("phone").value.trim(),
+            email: document.getElementById("email").value.trim(),
+
+            basePrice: numericPrice,
+            fees: fees,
+            totalPrice: total,
+
+            ticketState: ticket.state || "PAID",
+            statusLabel: "Confirmé",
+
+            ticket: ticket
+        };
+
+        sessionStorage.setItem("lastReservation", JSON.stringify(reservationData));
+    }
+
+    async function confirmPurchase() {
+        if (!validateForm()) {
+            return;
+        }
+
         payBtn.disabled = true;
         payBtn.textContent = "Paiement en cours...";
 
         try {
-            const res = await fetch(`/tickets/buy?tripId=${encodeURIComponent(tripId)}`, {
-                method: "POST"
-            });
+            const response = await fetch(
+                `/tickets/buy?tripId=${encodeURIComponent(tripId)}`,
+                {
+                    method: "POST"
+                }
+            );
 
-            if (!res.ok) {
-                throw new Error("Échec de l’achat du billet");
+            if (response.status === 401) {
+                showMessage("Vous devez vous connecter avant d’acheter un billet.", "error");
+
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 800);
+
+                return;
             }
+
+            if (response.status === 404) {
+                showMessage("Trajet introuvable.", "error");
+                return;
+            }
+
+            if (!response.ok) {
+                showMessage("Erreur lors de l’achat du billet.", "error");
+                return;
+            }
+
+            const ticket = await response.json();
+
+            saveReservationLocally(ticket);
 
             showMessage("Billet acheté avec succès.", "success");
 
             setTimeout(() => {
                 window.location.href = "validated.html";
-            }, 800);
+            }, 700);
 
-        } catch (err) {
-            console.error(err);
-            showMessage(err.message || "Erreur lors du paiement.", "error");
+        } catch (error) {
+            console.error(error);
+            showMessage("Impossible de contacter le serveur.", "error");
         } finally {
             payBtn.disabled = false;
             payBtn.textContent = "Payer";
         }
     }
 
+    saveTravellerBtn.addEventListener("click", saveTravellerPreview);
+    payBtn.addEventListener("click", confirmPurchase);
+
     fillTripSummary();
 </script>
 
-<script src="app.js"></script>
 </body>
 </html>

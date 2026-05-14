@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mes billets</title>
     <link rel="stylesheet" href="mytickets.css">
 </head>
@@ -17,14 +18,6 @@
         <nav class="menu">
             <a href="index.html">ACCUEIL</a>
             <a href="mytickets.html" class="active-link">MES BILLETS</a>
-
-            <a href="scanner.html" id="scannerLink" style="display:none;">
-                SCANNER
-            </a>
-
-            <a href="admin.html" id="adminLink" style="display:none;">
-                ADMIN
-            </a>
 
             <a href="login.html" class="user-avatar">
                 <img src="assets/client.png" alt="Profil utilisateur" />
@@ -42,145 +35,273 @@
             </div>
         </section>
 
-        <div class="tickets-summary" id="ticketsSummary">Chargement des billets...</div>
+        <div class="tickets-summary" id="ticketsSummary">
+            Chargement des billets...
+        </div>
 
         <section class="trains-list" id="ticketsList"></section>
     </main>
 </div>
 
 <script>
-    requireAuth();
+    const ticketsSummary = document.getElementById("ticketsSummary");
+    const ticketsList = document.getElementById("ticketsList");
 
-    function getStatusClass(status) {
-        switch ((status || "").toUpperCase()) {
-            case "VALID":
+    function getTicketId(ticket) {
+        return ticket.id_t
+            || ticket.id
+            || ticket.ticketId
+            || "-";
+    }
+
+    function getTicketState(ticket) {
+        return ticket.state
+            || ticket.status
+            || ticket.ticketState
+            || "UNKNOWN";
+    }
+
+    function getValidatedBy(ticket) {
+        return ticket.validatedBy
+            || ticket.validated_by
+            || null;
+    }
+
+    function getValidatedAt(ticket) {
+        return ticket.validatedAtDate
+            || ticket.validatedAt
+            || ticket.validated_at
+            || null;
+    }
+
+    function getStatusClass(state) {
+        switch ((state || "").toUpperCase()) {
+            case "PAID":
                 return "status-valid";
+            case "CREATED":
+                return "status-created";
             case "VALIDATED":
                 return "status-used";
             case "EXPIRED":
                 return "status-expired";
-            case "CREATED":
-                return "status-created";
+            case "FRAUD_SUSPECTED":
+                return "status-expired";
             default:
                 return "status-default";
         }
     }
 
-    function formatStatus(status) {
-        switch ((status || "").toUpperCase()) {
-            case "VALID":
-                return "Valide";
+    function formatStatus(state) {
+        switch ((state || "").toUpperCase()) {
+            case "PAID":
+                return "Payé";
+            case "CREATED":
+                return "Créé";
             case "VALIDATED":
                 return "Validé";
             case "EXPIRED":
                 return "Expiré";
-            case "CREATED":
-                return "Créé";
+            case "FRAUD_SUSPECTED":
+                return "Fraude suspectée";
             default:
-                return status || "Inconnu";
+                return state || "Inconnu";
         }
     }
 
-    async function loadTickets() {
-        const summary = document.getElementById("ticketsSummary");
-        const list = document.getElementById("ticketsList");
+    function formatDate(value) {
+        if (!value) return "-";
 
+        const date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleDateString("fr-FR");
+    }
+
+    function formatTime(value) {
+        if (!value) return "-";
+
+        const date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function formatDateTime(value) {
+        if (!value) return "-";
+
+        const date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleString("fr-FR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
+    function showEmptyState(title, message) {
+        ticketsList.innerHTML = `
+            <div class="empty-state">
+                <h3>${title}</h3>
+                <p>${message}</p>
+            </div>
+        `;
+    }
+
+    function renderTicket(ticket) {
+        const state = getTicketState(ticket);
+        const ticketId = getTicketId(ticket);
+        const validatedBy = getValidatedBy(ticket);
+        const validatedAt = getValidatedAt(ticket);
+
+        const card = document.createElement("article");
+        card.className = "train-card";
+
+        card.innerHTML = `
+            <div class="ticket-card-top">
+                <div>
+                    <h3 class="ticket-route">
+                        ${ticket.departure || "-"} → ${ticket.destination || "-"}
+                    </h3>
+
+                    <div class="ticket-subtitle">
+                        Billet de train
+                    </div>
+                </div>
+
+                <div class="status-badge ${getStatusClass(state)}">
+                    ${formatStatus(state)}
+                </div>
+            </div>
+
+            <div class="train-route-block">
+                <div class="route-left">
+                    <strong>${formatDate(ticket.dateDeparture)}</strong>
+                    <span>${formatTime(ticket.dateDeparture)}</span>
+                    <span>${ticket.departure || "-"}</span>
+                </div>
+
+                <div class="route-line"></div>
+
+                <div class="route-right">
+                    <strong>${formatDate(ticket.dateArrival)}</strong>
+                    <span>${formatTime(ticket.dateArrival)}</span>
+                    <span>${ticket.destination || "-"}</span>
+                </div>
+            </div>
+
+            <div class="ticket-footer">
+                <div class="price-block">
+                    <span>Prix</span>
+                    <strong>${ticket.price || 0}€</strong>
+                </div>
+
+                <div class="ticket-meta">
+                    <div>
+                        <span>Numéro du billet</span>
+                        <p>${ticketId}</p>
+                    </div>
+
+                    <div>
+                        <span>État</span>
+                        <p>${formatStatus(state)}</p>
+                    </div>
+
+                    <div>
+                        <span>Expiration</span>
+                        <p>${formatDateTime(ticket.expirationDate)}</p>
+                    </div>
+                </div>
+            </div>
+
+            ${
+            validatedBy || validatedAt
+                ? `
+                        <div class="ticket-validation-info">
+                            <span>Validation</span>
+                            <p>
+                                Validé par ${validatedBy || "-"}
+                                ${validatedAt ? " le " + formatDateTime(validatedAt) : ""}
+                            </p>
+                        </div>
+                    `
+                : ""
+        }
+        `;
+
+        return card;
+    }
+
+    async function loadTickets() {
         try {
             const response = await fetch("/tickets");
 
+            if (response.status === 401) {
+                ticketsSummary.textContent = "Connexion requise";
+
+                showEmptyState(
+                    "Vous devez vous connecter",
+                    "Connectez-vous pour consulter vos billets."
+                );
+
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 900);
+
+                return;
+            }
+
             if (!response.ok) {
-                throw new Error("Failed to load tickets");
+                throw new Error("Erreur lors du chargement des billets");
             }
 
             const tickets = await response.json();
 
-            summary.textContent = `${tickets.length} billet${tickets.length > 1 ? "s" : ""}`;
+            ticketsSummary.textContent =
+                `${tickets.length} billet${tickets.length > 1 ? "s" : ""}`;
 
-            list.innerHTML = "";
+            ticketsList.innerHTML = "";
 
             if (tickets.length === 0) {
-                list.innerHTML = `
-                <div class="empty-state">
-                    <h3>Aucun billet trouvé</h3>
-                    <p>Vous n’avez pas encore réservé de billet.</p>
-                </div>
-            `;
+                showEmptyState(
+                    "Aucun billet trouvé",
+                    "Vous n’avez pas encore réservé de billet."
+                );
                 return;
             }
 
             tickets.forEach(ticket => {
-                const dep = new Date(ticket.dateDeparture);
-                const arr = new Date(ticket.dateArrival);
-
-                const card = document.createElement("article");
-                card.className = "train-card";
-
-                card.innerHTML = `
-                <div class="ticket-card-top">
-                    <div>
-                        <h3 class="ticket-route">
-                            ${ticket.departure} → ${ticket.destination}
-                        </h3>
-                        <div class="ticket-subtitle">
-                            ${ticket.trainName ? ticket.trainName : "Billet de train"}
-                        </div>
-                    </div>
-
-                    <div class="status-badge ${getStatusClass(ticket.status)}">
-                        ${formatStatus(ticket.status)}
-                    </div>
-                </div>
-
-                <div class="train-route-block">
-                    <div class="route-left">
-                        <strong>${dep.toLocaleDateString()}</strong>
-                        <span>${dep.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        <span>${ticket.departure}</span>
-                    </div>
-
-                    <div class="route-line"></div>
-
-                    <div class="route-right">
-                        <strong>${arr.toLocaleDateString()}</strong>
-                        <span>${arr.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                        <span>${ticket.destination}</span>
-                    </div>
-                </div>
-
-                <div class="ticket-footer">
-                    <div class="price-block">
-                        <span>Prix</span>
-                        <strong>${ticket.price}€</strong>
-                    </div>
-
-                    <div class="ticket-meta">
-                        <div>
-                            <span>État</span>
-                            <p>${formatStatus(ticket.status)}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-                list.appendChild(card);
+                ticketsList.appendChild(renderTicket(ticket));
             });
 
         } catch (error) {
             console.error(error);
-            summary.textContent = "Erreur de chargement";
 
-            list.innerHTML = `
-            <div class="empty-state">
-                <h3>Impossible de charger les billets</h3>
-                <p>Veuillez réessayer plus tard.</p>
-            </div>
-        `;
+            ticketsSummary.textContent = "Erreur de chargement";
+
+            showEmptyState(
+                "Impossible de charger les billets",
+                "Vérifiez que le serveur Spring Boot est bien lancé."
+            );
         }
     }
 
     loadTickets();
 </script>
 
-<script src="app.js"></script>
 </body>
 </html>
