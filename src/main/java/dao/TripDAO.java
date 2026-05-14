@@ -2,7 +2,9 @@ package dao;
 
 import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.sql.Connection;
@@ -74,41 +76,51 @@ public class TripDAO {
 
         return null;
     }
+    public List<Trip> search(String departure, String destination, LocalDate date) {
 
-    public List<Trip> search(String departure, String destination) {
+    List<Trip> trips = new ArrayList<>();
 
-        List<Trip> trips = new ArrayList<>();
+    String sql = """
+        SELECT * FROM trips
+        WHERE LOWER(departure) LIKE LOWER(?)
+        AND LOWER(destination) LIKE LOWER(?)
+        AND departure_time >= ?
+        AND departure_time < ?
+    """;
 
-        String sql = """
-                    SELECT * FROM trips
-                    WHERE LOWER(departure) LIKE LOWER(?)
-                    AND LOWER(destination) LIKE LOWER(?)
-                """;
+    try (
+            Connection conn = dbConnection.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        try (
-                Connection conn = dbConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql)) {
+        stmt.setString(1, "%" + departure + "%");
+        stmt.setString(2, "%" + destination + "%");
 
-            stmt.setString(1, "%" + departure + "%");
-            stmt.setString(2, "%" + destination + "%");
+        java.sql.Timestamp startOfDay =
+                java.sql.Timestamp.valueOf(date.atStartOfDay());
 
-            var rs = stmt.executeQuery();
+        java.sql.Timestamp endOfDay =
+                java.sql.Timestamp.valueOf(date.plusDays(1).atStartOfDay());
 
-            while (rs.next()) {
+        stmt.setTimestamp(3, startOfDay);
+        stmt.setTimestamp(4, endOfDay);
 
-                trips.add(new Trip(
-                        UUID.fromString(rs.getString("id")),
-                        rs.getString("departure"),
-                        rs.getString("destination"),
-                        rs.getInt("price"),
-                        rs.getTimestamp("departure_time"),
-                        rs.getTimestamp("arrival_time")));
-            }
+        var rs = stmt.executeQuery();
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        while (rs.next()) {
+
+            trips.add(new Trip(
+                    UUID.fromString(rs.getString("id")),
+                    rs.getString("departure"),
+                    rs.getString("destination"),
+                    rs.getInt("price"),
+                    rs.getTimestamp("departure_time"),
+                    rs.getTimestamp("arrival_time")));
         }
 
-        return trips;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    return trips;
+}
 }

@@ -10,308 +10,203 @@
 <body>
 <div class="search-page">
 
-    <header class="topbar">
-        <a href="index.html" class="logo">
-            <img src="assets/logo.png" alt="TouTou Logo" />
+<header class="topbar">
+    <a href="index.html" class="logo">
+        <img src="assets/logo.png" />
+    </a>
+
+    <nav class="menu">
+        <a href="index.html">ACCUEIL</a>
+        <a href="mytickets.html">MES BILLETS</a>
+        <a href="login.html" class="user-avatar">
+            <img src="assets/client.png" />
         </a>
+    </nav>
+</header>
 
-        <nav class="menu">
-            <a href="index.html">ACCUEIL</a>
-            <a href="mytickets.html">MES BILLETS</a>
+<main class="search-layout">
 
-            <a href="login.html" class="user-avatar">
-                <img src="assets/client.png" alt="Profil utilisateur" />
-            </a>
-        </nav>
-    </header>
+<section class="left-panel">
 
-    <main class="search-layout">
+    <h1>Résultat de recherche</h1>
 
-        <section class="left-panel">
-            <h1>Résultat de recherche</h1>
+    <form id="searchForm" class="mini-search">
+        <div class="mini-inputs">
+            <input id="fromField" type="text" placeholder="Ville de départ" />
+            <input id="toField" type="text" placeholder="Ville d’arrivée" />
+        </div>
+        <button type="submit">Rechercher</button>
+    </form>
 
-            <div class="mini-search">
-                <div class="mini-inputs fixed-search-summary">
-                    <div class="summary-field">
-                        <span id="fromField">Ville de départ</span>
-                    </div>
+    <div id="selectedDateLabel">Date sélectionnée</div>
 
-                    <div class="summary-field">
-                        <span id="toField">Ville d’arrivée</span>
-                    </div>
-                </div>
+    <div class="days-selector">
+        <button id="prevDaysBtn">‹</button>
+        <div id="daysContainer"></div>
+        <button id="nextDaysBtn">›</button>
+    </div>
 
-                <button id="searchAgainBtn">Modifier</button>
-            </div>
+</section>
 
-            <div class="selected-date-label" id="selectedDateLabel">
-                Date sélectionnée : -
-            </div>
+<section class="right-panel">
 
-            <div class="days-selector">
-                <button class="day-arrow" id="prevDaysBtn">‹</button>
-                <div id="daysContainer" class="days-container"></div>
-                <button class="day-arrow" id="nextDaysBtn">›</button>
-            </div>
-        </section>
+    <div class="right-header">
+        <h2>Trains disponibles</h2>
+        <span class="train-count">Chargement...</span>
+    </div>
 
-        <section class="right-panel">
+    <div id="trainsList"></div>
 
-            <div class="right-header">
-                <h2>Trains disponibles</h2>
-                <span class="train-count">Chargement...</span>
-            </div>
+</section>
 
-            <div class="trains-list" id="trainsList"></div>
-
-        </section>
-
-    </main>
+</main>
 </div>
 
 <script>
-    const params = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.search);
 
-    const from = params.get("from");
-    const to = params.get("to");
+let from = params.get("from") || "";
+let to = params.get("to") || "";
 
-    const fromField = document.getElementById("fromField");
-    const toField = document.getElementById("toField");
-    const selectedDateLabel = document.getElementById("selectedDateLabel");
-    const trainCount = document.querySelector(".train-count");
-    const trainsList = document.getElementById("trainsList");
-    const searchAgainBtn = document.getElementById("searchAgainBtn");
+const fromField = document.getElementById("fromField");
+const toField = document.getElementById("toField");
+const trainsList = document.getElementById("trainsList");
+const trainCount = document.querySelector(".train-count");
+const selectedDateLabel = document.getElementById("selectedDateLabel");
 
-    fromField.textContent = from || "Ville de départ";
-    toField.textContent = to || "Ville d’arrivée";
+fromField.value = from;
+toField.value = to;
 
-    function getSelectedDate() {
-        const rawDate = params.get("depart") || params.get("date");
+function parseDate() {
+    const raw = params.get("date") || params.get("depart");
 
-        if (rawDate) {
-            const parsedDate = new Date(rawDate);
-
-            if (!isNaN(parsedDate.getTime())) {
-                parsedDate.setHours(0, 0, 0, 0);
-                return parsedDate;
-            }
-        }
-
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return today;
+    if (raw) {
+        const [y, m, d] = raw.split("-");
+        return new Date(y, m - 1, d);
     }
 
-    const selectedDate = getSelectedDate();
+    const t = new Date();
+    t.setHours(0,0,0,0);
+    return t;
+}
 
+let selectedDate = parseDate();
+
+function formatDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth()+1).padStart(2,"0");
+    const d = String(date.getDate()).padStart(2,"0");
+    return `${y}-${m}-${d}`;
+}
+
+function updateLabel() {
     selectedDateLabel.textContent =
         "Date sélectionnée : " +
-        selectedDate.toLocaleDateString("fr-FR", {
-            weekday: "long",
-            day: "2-digit",
-            month: "long",
-            year: "numeric"
-        });
+        selectedDate.toLocaleDateString("fr-FR");
+}
 
-    searchAgainBtn.addEventListener("click", () => {
-        window.location.href = "index.html";
-    });
+function renderDays() {
+    const container = document.getElementById("daysContainer");
+    container.innerHTML = "";
 
-    function formatDateTime(value) {
-        const date = new Date(value);
+    for (let i = -2; i <= 3; i++) {
+        const d = new Date(selectedDate);
+        d.setDate(d.getDate() + i);
 
-        if (isNaN(date.getTime())) {
-            return {
-                date: "-",
-                time: "-"
-            };
-        }
+        const div = document.createElement("div");
+        div.className = "day";
+        div.textContent = d.getDate();
 
-        return {
-            date: date.toLocaleDateString("fr-FR"),
-            time: date.toLocaleTimeString("fr-FR", {
-                hour: "2-digit",
-                minute: "2-digit"
-            })
+        div.onclick = () => {
+            selectedDate = d;
+            updateLabel();
+            loadTrips();
         };
+
+        container.appendChild(div);
+    }
+}
+
+function showEmpty(msg) {
+    trainsList.innerHTML = `<p>${msg}</p>`;
+}
+
+async function loadTrips() {
+
+    if (!from || !to) {
+        showEmpty("Ville manquante");
+        return;
     }
 
-    function showEmptyState(title, message) {
-        trainsList.innerHTML = `
-            <div class="empty-state">
-                <h3>${title}</h3>
-                <p>${message}</p>
-            </div>
-        `;
-    }
+    const url =
+        `/trips/search?from=${encodeURIComponent(from)}`
+        + `&to=${encodeURIComponent(to)}`
+        + `&date=${encodeURIComponent(formatDate(selectedDate))}`;
 
-    const dayLabels = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-    let dayOffset = -1;
+    console.log("API:", url);
 
-    function isSameDay(dateA, dateB) {
-        return dateA.getFullYear() === dateB.getFullYear()
-            && dateA.getMonth() === dateB.getMonth()
-            && dateA.getDate() === dateB.getDate();
-    }
+    try {
+        const res = await fetch(url);
+        const trips = await res.json();
 
-    function formatDateForUrl(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
+        trainCount.textContent = `${trips.length} résultat(s)`;
+        trainsList.innerHTML = "";
 
-        return `${year}-${month}-${day}`;
-    }
-
-    function renderDays() {
-        const container = document.getElementById("daysContainer");
-        container.innerHTML = "";
-
-        for (let i = 0; i < 6; i++) {
-            const current = new Date(selectedDate);
-            current.setDate(selectedDate.getDate() + dayOffset + i);
-
-            const dayDiv = document.createElement("div");
-            dayDiv.className = "day";
-
-            if (isSameDay(current, selectedDate)) {
-                dayDiv.classList.add("active");
-            }
-
-            dayDiv.innerHTML = `
-                ${dayLabels[current.getDay()]}<br>
-                <span>${current.getDate()}</span>
-            `;
-
-            dayDiv.addEventListener("click", () => {
-                const newDate = formatDateForUrl(current);
-
-                const newUrl =
-                    `recherche.html?from=${encodeURIComponent(from || "")}`
-                    + `&to=${encodeURIComponent(to || "")}`
-                    + `&date=${encodeURIComponent(newDate)}`;
-
-                window.location.href = newUrl;
-            });
-
-            container.appendChild(dayDiv);
-        }
-    }
-
-    document.getElementById("prevDaysBtn").addEventListener("click", () => {
-        dayOffset -= 1;
-        renderDays();
-    });
-
-    document.getElementById("nextDaysBtn").addEventListener("click", () => {
-        dayOffset += 1;
-        renderDays();
-    });
-
-    async function loadTrips() {
-        if (!from || !to) {
-            trainCount.textContent = "Recherche incomplète";
-            showEmptyState(
-                "Recherche incomplète",
-                "Veuillez renseigner une ville de départ et une ville d’arrivée."
-            );
+        if (trips.length === 0) {
+            showEmpty("Aucun trajet");
             return;
         }
 
-        try {
-            const url =
-                `/trips/search?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+        trips.forEach(t => {
+            const div = document.createElement("div");
+            div.className = "train-card";
 
-            const response = await fetch(url);
+            div.innerHTML = `
+                <h3>${t.departure} → ${t.destination}</h3>
+                <p>${t.price}€</p>
+            `;
 
-            if (!response.ok) {
-                throw new Error("Erreur API");
-            }
+            trainsList.appendChild(div);
+        });
 
-            const trips = await response.json();
-
-            trainsList.innerHTML = "";
-            trainCount.textContent = `${trips.length} train(s) disponible(s)`;
-
-            if (trips.length === 0) {
-                showEmptyState(
-                    "Aucun train disponible",
-                    "Aucun trajet ne correspond à votre recherche pour le moment."
-                );
-                return;
-            }
-
-            trips.forEach(trip => {
-                const departure = formatDateTime(trip.departureTime);
-                const arrival = formatDateTime(trip.arrivalTime);
-
-                const card = document.createElement("article");
-                card.className = "train-card";
-
-                card.innerHTML = `
-                    <div class="train-info">
-                        <h3>${trip.departure} → ${trip.destination}</h3>
-
-                        <div class="train-route">
-                            <div class="route-left">
-                                <strong>${departure.date}</strong>
-                                <span>${departure.time}</span>
-                                <span>${trip.departure}</span>
-                            </div>
-
-                            <div class="route-line"></div>
-
-                            <div class="route-right">
-                                <strong>${arrival.date}</strong>
-                                <span>${arrival.time}</span>
-                                <span>${trip.destination}</span>
-                            </div>
-                        </div>
-
-                        <div class="price-block">
-                            <span>Prix</span>
-                            <strong>${trip.price}€</strong>
-                        </div>
-                    </div>
-
-                    <div class="train-action">
-                        <button class="buy-btn">Acheter</button>
-                    </div>
-                `;
-
-                const buyBtn = card.querySelector(".buy-btn");
-
-                buyBtn.addEventListener("click", () => {
-                    goToDetail(trip);
-                });
-
-                trainsList.appendChild(card);
-            });
-
-        } catch (error) {
-            console.error(error);
-
-            trainCount.textContent = "Erreur de chargement";
-            showEmptyState(
-                "Impossible de charger les trajets",
-                "Vérifiez que le serveur Spring Boot est bien lancé."
-            );
-        }
+    } catch (e) {
+        console.error(e);
+        showEmpty("Erreur API");
     }
+}
 
-    function goToDetail(trip) {
-        const url =
-            `detail.html?tripId=${encodeURIComponent(trip.id)}`
-            + `&departure=${encodeURIComponent(trip.departure)}`
-            + `&destination=${encodeURIComponent(trip.destination)}`
-            + `&price=${encodeURIComponent(trip.price)}`
-            + `&departureTime=${encodeURIComponent(trip.departureTime)}`
-            + `&arrivalTime=${encodeURIComponent(trip.arrivalTime)}`;
+document.getElementById("searchForm").onsubmit = (e) => {
+    e.preventDefault();
 
-        window.location.href = url;
-    }
+    from = fromField.value;
+    to = toField.value;
 
+    const url =
+        `recherche.html?from=${encodeURIComponent(from)}`
+        + `&to=${encodeURIComponent(to)}`
+        + `&date=${encodeURIComponent(formatDate(selectedDate))}`;
+
+    window.location.href = url;
+};
+
+document.getElementById("prevDaysBtn").onclick = () => {
+    selectedDate.setDate(selectedDate.getDate() - 1);
+    updateLabel();
     renderDays();
     loadTrips();
+};
+
+document.getElementById("nextDaysBtn").onclick = () => {
+    selectedDate.setDate(selectedDate.getDate() + 1);
+    updateLabel();
+    renderDays();
+    loadTrips();
+};
+
+updateLabel();
+renderDays();
+loadTrips();
+
 </script>
 
 </body>
