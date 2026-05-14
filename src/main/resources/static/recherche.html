@@ -225,14 +225,10 @@
             return;
         }
 
-        /*
-            Le backend actuel utilise surtout from/to.
-            On garde la date dans l’URL pour l’affichage,
-            mais la recherche API reste compatible avec le backend Java.
-        */
         const url =
             `/trips/search?from=${encodeURIComponent(from)}`
-            + `&to=${encodeURIComponent(to)}`;
+            + `&to=${encodeURIComponent(to)}`
+            + `&date=${encodeURIComponent(formatDateForUrl(selectedDate))}`;
 
         try {
             const response = await fetch(url);
